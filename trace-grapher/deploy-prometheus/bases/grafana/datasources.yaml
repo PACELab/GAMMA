@@ -1,0 +1,14 @@
+{
+  "apiVersion": 1,
+  "datasources": [
+    {
+      "access": "proxy",
+      "editable": false,
+      "name": "prometheus",
+      "orgId": 1,
+      "type": "prometheus",
+      "url": "http://prometheus-operated.monitoring-stack.svc:9090/prometheus",
+      "version": 1
+    }
+  ]
+}

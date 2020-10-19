@@ -1,0 +1,17 @@
+apiVersion: kafka.strimzi.io/v1beta1
+kind: KafkaConnect
+metadata:
+  name: kafka-connect
+
+spec:
+  replicas: 2
+  jvmOptions:
+    -Xms: "256M"
+    -Xmx: "256M"
+  resources:
+    limits:
+      memory: 1Gi
+      cpu: "2"
+    requests:
+      memory: 1Gi
+      cpu: "500m"

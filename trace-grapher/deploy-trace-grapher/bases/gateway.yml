@@ -1,0 +1,28 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: tracegrapher-gateway
+  namespace: trace-grapher
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - hosts: [ "*" ]
+    port:
+      number: 80
+      name: http
+      protocol: HTTP
+  # - hosts: [ "*" ]
+  #   port:
+  #     number: 443
+  #     name: https
+  #     protocol: HTTPS
+  #   tls:
+  #     mode: SIMPLE # enables HTTPS on this port
+  #     serverCertificate: /etc/certs/servercert.pem
+  #     privateKey: /etc/certs/privatekey.pem
+  - hosts: [ "*" ]
+    port:
+      number: 7687
+      name: bolt
+      protocol: TCP

@@ -1,0 +1,43 @@
+apiVersion: kafka.strimzi.io/v1beta1
+kind: KafkaConnect
+metadata:
+  name: kafka-connect
+  labels:
+    monitoredBy: prometheus
+
+spec:
+  image: "razalgethi/trace-grapher-strimzi-kafka-connect"
+  version: 2.4.0
+  replicas: 1
+  bootstrapServers: kafka-cluster-kafka-bootstrap.monitoring-stack.svc.cluster.local:9092
+  jvmOptions:
+    -Xms: "256M"
+    -Xmx: "256M"
+  resources:
+    limits:
+      memory: 1Gi
+      cpu: "2"
+    requests:
+      memory: 1Gi
+      cpu: "500m"
+  config:
+    group.id: kafka-connect-group
+    config.storage.replication.factor: 1
+    offset.storage.replication.factor: 1
+    status.storage.replication.factor: 1
+    key.converter.schemas.enable: false
+    key.converter: "org.apache.kafka.connect.storage.StringConverter"
+    value.converter.schemas.enable: false
+    value.converter: "org.apache.kafka.connect.json.JsonConverter"
+    internal.key.converter: "org.apache.kafka.connect.json.JsonConverter"
+    internal.value.converter: "org.apache.kafka.connect.json.JsonConverter"
+  logging:
+    type: inline
+  metrics:
+    lowercaseOutputName: true
+    lowercaseOutputLabelNames: true
+    rules:
+    - pattern : "kafka.connect<type=connect-worker-metrics>([^:]+):"
+      name: "kafka_connect_connect_worker_metrics_$1"
+    - pattern : "kafka.connect<type=connect-metrics, client-id=([^:]+)><>([^:]+)"
+      name: "kafka_connect_connect_metrics_$1_$2"

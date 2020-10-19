@@ -1,0 +1,16 @@
+{
+  "core": {
+    "events": [
+      ["instructions", "instructions_retired"]
+    ],
+    "custom_events": [
+      {
+        "type": 4,
+        "config": [
+          "0x5300c0"
+        ],
+        "name": "instructions_retired"
+      }
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+. /cron/cronfile
+
+base=`basename $0`
+cmd=/cron/bin/$base
+
+exec $cmd ${@:+"$@"}

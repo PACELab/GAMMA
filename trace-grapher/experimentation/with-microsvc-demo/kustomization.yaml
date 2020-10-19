@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: default
+
+commonLabels:
+  experimentation: microsvc-demo
+
+configMapGenerator:
+  - name: loadgenerator-config
+    literals:
+      - FRONTEND_ADDR=frontend:80
+      - USERS=3
+
+bases:
+  - ../common/
+
+resources:
+  - kubernetes-manifests.yaml
+  - loadgenerator.yaml
+  - virtualservice.yml
+  - whitelist-egress-currencyprovider.yml
+  - whitelist-egress-googleapis.yml

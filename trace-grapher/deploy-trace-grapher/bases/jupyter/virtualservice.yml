@@ -1,0 +1,19 @@
+
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: jupyter
+spec:
+  hosts: [ "*" ]
+  gateways:
+  - tracegrapher-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /jupyter/
+    route:
+    - destination:
+        host: jupyter
+        port:
+          number: 8888

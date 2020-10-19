@@ -1,0 +1,8 @@
+astroid
+pytest>=3.6.0
+pytest-timeout
+pexpect
+pylint
+jsonschema
+bandit
+psutil

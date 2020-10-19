@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-connect-ui
+spec:
+  type: ClusterIP
+  selector:
+    app: kafka-connect-ui
+  ports:
+  - name: http-webui
+    protocol: "TCP"
+    port: 8000
+    targetPort: 8000

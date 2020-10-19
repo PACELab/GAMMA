@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: jupyter
+  labels:
+    app: jupyter
+spec:
+  type: ClusterIP
+  selector:
+    app: jupyter
+  ports:
+  - name: http-web
+    port: 8888
+  - name: http-sparkui
+    port: 4040

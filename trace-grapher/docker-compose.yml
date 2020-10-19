@@ -1,0 +1,27 @@
+# Docker-compose file used for reference to wrap the launch lauch of the deployment image
+# ```
+# docker-compose run stack-builder
+# ```
+
+version: '3.7'
+
+services:
+  stack-builder:
+    build:
+      context: .
+      dockerfile: Dockerfile.deploy
+    network_mode: "host"
+    stdin_open: true
+    tty: true
+    volumes:
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+      - type: bind
+        source: '${HOME}/.kube/config'
+        target: /root/.kube/config
+      - type: bind
+        source: '${PWD}'
+        target: '${PWD}'
+    working_dir: '${PWD}'
+    command: sh -l

@@ -1,0 +1,48 @@
+global:
+  resolve_timeout: "5m"
+
+# A list of notification receivers.
+receivers:
+- name: "ToKafkaBridge"
+  webhook_configs:
+  - send_resolved: false
+    url: "http://kafka-bridge-bridge-service.monitoring-stack.svc.cluster.local:8080/topics/anomalies"
+
+# The root node of the routing tree.
+route:
+  receiver: "ToKafkaBridge"
+
+  # The labels by which incoming alerts are grouped together.
+  # To aggregate by all possible labels use the special value '...' as the sole label name, for example:
+  # group_by: ['...']
+  group_by: [ "..." ]
+
+  # How long to initially wait to send a notification for a group
+  # of alerts. Allows to wait for an inhibiting alert to arrive or collect
+  # more initial alerts for the same group. (Usually ~0s to few minutes.)
+  group_wait: "5s"
+
+  # How long to wait before sending a notification about new alerts that
+  # are added to a group of alerts for which an initial notification has
+  # already been sent. (Usually ~5m or more.)
+  group_interval: "5m"
+
+  # How long to wait before sending a notification again if it has already
+  # been sent successfully for an alert. (Usually ~3h or more).
+  repeat_interval: "12h"
+
+  # Zero or more child routes.
+  routes: []
+
+# A list of inhibition rules.
+inhibit_rules:
+- equal: [ namespace, alertname ]
+  source_match:
+    severity: "critical"
+  target_match_re:
+    severity: "warning|info"
+- equal: [ "namespace", "alertname" ]
+  source_match:
+    severity: "warning"
+  target_match_re:
+    severity: "info"

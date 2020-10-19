@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: jupyter
+
+spec:
+  serviceName: jupyter
+  volumeClaimTemplates:
+  - metadata:
+      name: jupyter-data
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: "local-path"
+      resources:
+        requests:
+          storage: 1Gi

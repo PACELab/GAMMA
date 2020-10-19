@@ -1,0 +1,31 @@
+apiVersion: kafka.strimzi.io/v1beta1
+kind: Kafka
+metadata:
+  name: kafka-cluster
+
+spec:
+  kafka:
+    replicas: 2
+    jvmOptions:
+      -Xms: "512M"
+      -Xmx: "512M"
+    resources:
+      limits:
+        memory: 2Gi
+        cpu: 1
+      requests:
+        memory: 2Gi
+        cpu: 100m
+
+  zookeeper:
+    replicas: 1
+    jvmOptions:
+      -Xms: "256M"
+      -Xmx: "256M"
+    resources:
+      limits:
+        memory: 1Gi
+        cpu: 500m
+      requests:
+        memory: 512Mi
+        cpu: 100m

@@ -1,0 +1,35 @@
+# Docker image used for building the stack embedding binaries and libs required by
+# the deployment procedure for both local deployment and remote kubernetes Cluster
+
+FROM docker:dind
+
+ARG dockercompose_version=1.25.0
+ARG kubectl_version=v1.17.0
+ARG yq_version=3.3.0
+
+RUN set -eux; \
+    apk add --no-cache \
+        curl \
+        gettext \
+        jq \
+        make \
+    ;
+
+RUN set -eux; \
+    apk add --no-cache --virtual docker-compose-depts \
+        gcc \
+        libc-dev \
+        libffi-dev \
+        openssl-dev \
+        py-pip \
+        python-dev \
+    ; \
+    pip install docker-compose;
+
+RUN set -eux; \
+    curl -L "https://storage.googleapis.com/kubernetes-release/release/${kubectl_version}/bin/linux/amd64/kubectl" -o /usr/local/bin/kubectl; \
+    chmod +x /usr/local/bin/kubectl;
+
+RUN set -eux; \
+    curl -L "https://github.com/mikefarah/yq/releases/download/${yq_version}/yq_linux_amd64" -o /usr/local/bin/yq; \
+    chmod +x /usr/local/bin/yq;

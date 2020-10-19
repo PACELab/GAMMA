@@ -1,0 +1,126 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: neo4j
+
+spec:
+  selector:
+    matchLabels:
+      app: neo4j
+  serviceName: neo4j
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: neo4j
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: neo4j
+        image: neo4j:3.5
+        imagePullPolicy: Always
+        ports:
+        - name: http-web
+          containerPort: 7474
+        - name: tcp-bolt
+          containerPort: 7687
+        env:
+        - name: NEO4J_AUTH
+          valueFrom:
+            secretKeyRef:
+              name: neo4j-env
+              key: NEO4J_AUTH
+        - name: NEO4J_apoc_ttl_enabled
+          value: "true"
+        # - name: NEO4J_dbms_default__listen__address
+        #   value: '0.0.0.0'
+        - name: NEO4J_dbms_security_procedures_unrestricted
+          value: algo.*,apoc.*
+        # - name: NEO4J_dbms_ssl_policy_bolt_enabled
+        #   value: 'false'
+        - name: NEO4J_dbms_connector_bolt_tls__level
+          value: OPTIONAL
+        - name: NEO4J_dbms_connector_bolt_listen__address
+          value: 0.0.0.0:7687
+        - name: NEO4J_dbms_connector_http_listen__address
+          value: 0.0.0.0:7474
+        - name: NEO4J_dbms_allow__upgrade
+          value: 'true'
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: logs
+          mountPath: /logs
+        - name: plugins
+          mountPath: /plugins
+        readinessProbe:
+          tcpSocket:
+            port: 7687
+          initialDelaySeconds: 30
+          periodSeconds: 3
+        livenessProbe:
+          initialDelaySeconds: 60
+          tcpSocket:
+            port: 7687
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "1Gi"
+          limits:
+            cpu: "1"
+            memory: "2Gi"
+      initContainers:
+      - name: pull-plugins
+        image: appropriate/curl:latest
+        volumeMounts:
+        - name: plugins
+          mountPath: /plugins
+        env:
+        - name: HTTP_PROXY
+          valueFrom:
+            secretKeyRef:
+              name: neo4j-env
+              key: HTTP_PROXY
+        - name: HTTPS_PROXY
+          valueFrom:
+            secretKeyRef:
+              name: neo4j-env
+              key: HTTPS_PROXY
+        - name: NO_PROXY
+          valueFrom:
+            secretKeyRef:
+              name: neo4j-env
+              key: NO_PROXY
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          curl -x "${HTTP_PROXY}" -sSL https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.7/apoc-3.5.0.7-all.jar > "/plugins/apoc-3.5.0.7-all.jar";
+  volumeClaimTemplates:
+  - metadata:
+      name: "data"
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: hostpath
+      resources:
+        requests:
+          storage: 2Gi
+  - metadata:
+      name: "logs"
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: hostpath
+      resources:
+        requests:
+          storage: 1Gi
+  - metadata:
+      name: "plugins"
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: hostpath
+      resources:
+        requests:
+          storage: 1Gi

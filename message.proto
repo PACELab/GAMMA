@@ -1,0 +1,67 @@
+syntax = "proto2";
+
+package interaction;
+
+// Interface exported by the server.
+service Interaction {
+  rpc GetState(ComponentId) returns (ToClientMessage) {}
+  rpc PerformAction(ToServerMessage) returns (ToClientMessage) {}
+  
+  // Streaming requests and responses.
+  // rpc GetState(stream ComponentId) returns (stream ToClientMessage) {}
+  // rpc PerformAction(stream ToServerMessage) returns (stream ToClientMessage) {}
+}
+
+message ToServerMessage {
+  required string name = 1;
+  required string node = 2;
+  required string id = 3;
+  required Action action = 4;
+}
+
+message ToClientMessage {
+  optional string name = 1;
+  optional string node = 2;
+  required string id = 3;
+  required Usage usage = 4;
+  required Limit limit = 5;
+  required Other other = 6;
+  required string status = 7;
+}
+
+message ComponentId {
+  optional string name = 1;
+  optional string node = 2;
+  required string id = 3;
+}
+
+message Action {
+  required int32 cpu = 1;
+  required int32 memory = 2;
+  required int32 llc = 3;
+  required int32 io = 4;
+  required int32 network = 5; 
+}
+
+message Limit {
+  required int32 cpu = 1;
+  required int32 memory = 2;
+  required int32 llc = 3;
+  required int32 io = 4;
+  required int32 network = 5;
+}
+
+message Usage {
+  required int32 cpu = 1;
+  required int32 memory = 2;
+  required int32 llc = 3;
+  required int32 io = 4;
+  required int32 network = 5;
+}
+
+message Other {
+  required float slo_retainment = 1;
+  required int32 curr_arrival_rate = 2;
+  required float rate_ratio = 3;
+  repeated float percentages = 4;
+}

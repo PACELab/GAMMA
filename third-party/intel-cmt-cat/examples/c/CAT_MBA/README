@@ -1,0 +1,77 @@
+================================================================================
+README for CAT and MBA Sample Applications
+
+August 2018
+================================================================================
+
+CONTENTS
+========
+
+- Overview
+- Compilation
+- Usage
+- Legal Disclaimer
+
+
+OVERVIEW
+========
+
+This is example code to demonstrate the use of PQoS/Intel(R) Resource Director
+Technology (Intel(R) RDT) library APIs to manage Cache Allocation Technology
+(CAT) and Memory Bandwidth Allocation (MBA).
+Refer to https://github.com/01org/intel-cmt-cat/blob/master/README table 1
+for a list of processors supporting CAT and MBA. Each sample application
+build will create five targets as follows:
+1. allocation_app_l2cat - Demonstrates usage of PQoS/Intel(R) RDT library APIs
+related to setting bit masks for L2 CAT classes of service (CLOS) and displaying
+classes of service (CLOS) and associated bit masks.
+2. allocation_app_l3cat - Demonstrates usage of PQoS/Intel(R) RDT library APIs
+related to setting bit mask for L3 CAT classes of service (CLOS) and displaying
+classes of service (CLOS) and associated bit masks.
+3. allocation_app_mba - Demonstrates usage of PQoS/Intel(R) RDT library APIs
+related to setting MBA delay values for classes of service (CLOS) and displaying
+classes of service (CLOS) and associated delay values.
+4. association_app - Demonstrates usage of PQoS/Intel(R) RDT library APIs
+related to association of class of service (CLOS) to cores and displaying
+class of service (CLOS) and core association.
+5. reset_app - Demonstrates usage of PQoS/Intel(R) RDT library APIs related to
+resetting all classes of service to system default bit masks (CAT) and delay
+values (MBA).
+All apps operate in user space and use PQoS/Intel(R) RDT and C libraries only.
+
+
+COMPILATION
+===========
+
+Note: The PQoS/Intel(R) RDT library should be installed before compilation.
+
+Run "make all" or "make" to compile the programs. If compilation is successful
+"allocation_app_l2cat", "allocation_app_l3cat", "allocation_app_mba",
+"association_app" and "reset_app" binaries should be present in the directory.
+
+Run "make clean" to clean the build files.
+
+
+USAGE
+=====
+
+To run:
+$ sudo ./allocation_app_<l2cat/l3cat/mba>
+$ sudo ./association_app
+$ sudo ./reset_app
+
+For more usage options:
+Run the app as stated up above with the "-h" option.
+
+
+LEGAL DISCLAIMER
+================
+
+THIS SOFTWARE IS PROVIDED BY INTEL"AS IS". NO LICENSE, EXPRESS OR
+IMPLIED, BY ESTOPPEL OR OTHERWISE, TO ANY INTELLECTUAL PROPERTY RIGHTS
+ARE GRANTED THROUGH USE. EXCEPT AS PROVIDED IN INTEL'S TERMS AND
+CONDITIONS OF SALE, INTEL ASSUMES NO LIABILITY WHATSOEVER AND INTEL
+DISCLAIMS ANY EXPRESS OR IMPLIED WARRANTY, RELATING TO SALE AND/OR
+USE OF INTEL PRODUCTS INCLUDING LIABILITY OR WARRANTIES RELATING TO
+FITNESS FOR A PARTICULAR PURPOSE, MERCHANTABILITY, OR INFRINGEMENT
+OF ANY PATENT, COPYRIGHT OR OTHER INTELLECTUAL PROPERTY RIGHT.

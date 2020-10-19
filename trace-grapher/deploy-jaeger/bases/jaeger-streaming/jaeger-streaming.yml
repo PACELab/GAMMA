@@ -1,0 +1,45 @@
+$patch: replace
+apiVersion: jaegertracing.io/v1
+kind: Jaeger
+metadata:
+  name: jaeger
+spec:
+  strategy: streaming
+
+  collector:
+    options:
+      kafka:
+        producer:
+          topic: jaeger-spans
+          encoding: json
+          brokers: kafka-cluster-kafka-bootstrap:9092
+
+  ingester:
+    options:
+      kafka:
+        consumer:
+          topic: jaeger-spans
+          encoding: json
+          brokers: kafka-cluster-kafka-bootstrap:9092
+          group-id: jaeger-ingester
+      ingester:
+        deadlockInterval: 0
+        parallelism: 1000
+
+  storage:
+    type: elasticsearch
+    options:
+      es:
+        # use-aliases: true
+        server-urls: http://jaeger-tracing-backend-es-http:9200
+    secretName: elasticsearch-auth
+    esIndexCleaner:
+      enabled: false
+      image: jaegertracing/jaeger-es-index-cleaner
+      numberOfDays: 7
+      schedule: "55 23 * * *"
+    # esRollover:
+    #   enabled: true
+    #   conditions: "{\"max_age\": \"2d\"}"
+    #   readTTL: 7d
+    #   schedule: "55 23 * * *"

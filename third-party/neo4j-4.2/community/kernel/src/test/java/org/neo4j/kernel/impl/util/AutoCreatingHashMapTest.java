@@ -1,0 +1,76 @@
+/*
+ * Copyright (c) 2002-2020 "Neo4j,"
+ * Neo4j Sweden AB [http://neo4j.com]
+ *
+ * This file is part of Neo4j.
+ *
+ * Neo4j is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.neo4j.kernel.impl.util;
+
+import org.junit.jupiter.api.Test;
+
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.neo4j.kernel.impl.util.AutoCreatingHashMap.nested;
+import static org.neo4j.kernel.impl.util.AutoCreatingHashMap.values;
+
+class AutoCreatingHashMapTest
+{
+    @Test
+    void shouldCreateValuesIfMissing()
+    {
+        // GIVEN
+        Map<String, AtomicLong> map = new AutoCreatingHashMap<>( values( AtomicLong.class ) );
+        String key = "should be created";
+
+        // WHEN
+        map.get( key ).incrementAndGet();
+
+        // THEN
+        assertEquals( 1, map.get( key ).get() );
+        assertTrue( map.containsKey( key ) );
+        assertFalse( map.containsKey( "any other key" ) );
+    }
+
+    @Test
+    void shouldCreateValuesEvenForNestedMaps()
+    {
+        // GIVEN
+        Map<String, Map<String, Map<String, AtomicLong>>> map = new AutoCreatingHashMap<>(
+                nested( nested( values( AtomicLong.class ) ) ) );
+        String keyLevelOne = "first";
+        String keyLevelTwo = "second";
+        String keyLevelThree = "third";
+
+        // WHEN
+        map.get( keyLevelOne ).get( keyLevelTwo ).get( keyLevelThree ).addAndGet( 10 );
+
+        // THEN
+        assertTrue( map.containsKey( keyLevelOne ) );
+        assertFalse( map.containsKey( keyLevelTwo ) ); // or any other value for that matter
+        Map<String, Map<String, AtomicLong>> levelOne = map.get( keyLevelOne );
+        assertTrue( levelOne.containsKey( keyLevelTwo ) );
+        assertFalse( levelOne.containsKey( keyLevelThree ) );  // or any other value for that matter
+        Map<String, AtomicLong> levelTwo = levelOne.get( keyLevelTwo );
+        assertTrue( levelTwo.containsKey( keyLevelThree ) );
+        assertFalse( levelTwo.containsKey( keyLevelOne ) );  // or any other value for that matter
+        AtomicLong levelThree = levelTwo.get( keyLevelThree );
+        assertEquals( 10, levelThree.get() );
+    }
+}

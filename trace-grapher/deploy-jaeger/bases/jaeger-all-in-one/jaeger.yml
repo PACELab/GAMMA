@@ -1,0 +1,25 @@
+apiVersion: jaegertracing.io/v1
+kind: Jaeger
+metadata:
+  name: jaeger
+spec:
+  strategy: allInOne
+
+  allInOne:
+    options:
+      log-level: debug
+      query:
+        base-path: /jaeger
+
+  query:
+    options:
+      query:
+        base-path: /jaeger
+
+  ui:
+    options:
+      dependencies:
+        menuEnabled: false
+
+  ingress:
+    enabled: false

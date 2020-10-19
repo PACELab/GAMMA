@@ -1,0 +1,19 @@
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: emojivoto
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - experimentation-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: "web-svc"
+        port: 
+          number: 8080

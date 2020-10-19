@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: grafana
+  name: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+      - image: grafana/grafana:6.6.0
+        name: grafana
+        ports:
+        - containerPort: 3000
+          name: http-grafana
+        env:
+        - name: GF_SERVER_ROOT_URL
+          value: "%(protocol)s://%(domain)/grafana/"
+        - name: GF_SERVER_DOMAIN
+          valueFrom:
+            secretKeyRef:
+              name: grafana-env
+              key: GF_SERVER_DOMAIN
+        - name: GF_SERVER_PROTOCOL
+          valueFrom:
+            secretKeyRef:
+              name: grafana-env
+              key: GF_SERVER_PROTOCOL
+        - name: GF_SECURITY_ADMIN_USER
+          valueFrom:
+            secretKeyRef:
+              name: grafana-env
+              key: GF_SECURITY_ADMIN_USER
+        - name: GF_SECURITY_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: grafana-env
+              key: GF_SECURITY_ADMIN_PASSWORD
+        resources:
+          limits:
+            cpu: 200m
+            memory: 200Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        volumeMounts:
+        - mountPath: /var/lib/grafana
+          name: grafana-storage
+          readOnly: false
+        - mountPath: /etc/grafana/provisioning/datasources
+          name: grafana-datasources
+          readOnly: false
+        - mountPath: /etc/grafana/provisioning/dashboards
+          name: grafana-dashboards
+          readOnly: false
+        - mountPath: /grafana-dashboard-definitions/0/
+          name: grafana-dashboard-definitions-0
+        - mountPath: /grafana-dashboard-definitions/1/
+          name: grafana-dashboard-definitions-1
+        - mountPath: /grafana-dashboard-definitions/2/
+          name: grafana-dashboard-definitions-2
+        - mountPath: /grafana-dashboard-definitions/3/
+          name: grafana-dashboard-definitions-3
+        - mountPath: /grafana-dashboard-definitions/4/
+          name: grafana-dashboard-definitions-4
+        - mountPath: /grafana-dashboard-definitions/5/
+          name: grafana-dashboard-definitions-5
+        - mountPath: /grafana-dashboard-definitions/6/
+          name: grafana-dashboard-definitions-6
+        - mountPath: /grafana-dashboard-definitions/7/
+          name: grafana-dashboard-definitions-7
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+      volumes:
+      - emptyDir: {}
+        name: grafana-storage
+      - name: grafana-datasources
+        secret:
+          secretName: grafana-datasources
+      - name: grafana-dashboards
+        configMap:
+          name: grafana-dashboards
+      - name: grafana-dashboard-definitions-0
+        configMap:
+          name: grafana-dashboard-definitions-0
+      - name: grafana-dashboard-definitions-1
+        configMap:
+          name: grafana-dashboard-definitions-1
+      - name: grafana-dashboard-definitions-2
+        configMap:
+          name: grafana-dashboard-definitions-2
+      - name: grafana-dashboard-definitions-3
+        configMap:
+          name: grafana-dashboard-definitions-3
+      - name: grafana-dashboard-definitions-4
+        configMap:
+          name: grafana-dashboard-definitions-4
+      - name: grafana-dashboard-definitions-5
+        configMap:
+          name: grafana-dashboard-definitions-5
+      - name: grafana-dashboard-definitions-6
+        configMap:
+          name: grafana-dashboard-definitions-6
+      - name: grafana-dashboard-definitions-7
+        configMap:
+          name: grafana-dashboard-definitions-7

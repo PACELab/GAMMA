@@ -1,0 +1,25 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+secretGenerator:
+  - name: jupyter-env
+    literals:
+      - JUPYTER_PASSWORD_SHA1=sha1:7ebf6567d6cf:19345de3e61d863b60fb79060f6ea9facaf965a9 # = 'password'
+      - HTTP_PROXY=
+      - HTTPS_PROXY=
+      - NO_PROXY=localhost,127.0.0.1
+      - NEO4J_URI=http://neo4j:GorgeousPassword@neo4j:7474/db/data
+      - PROMETHEUS_URI=http://prometheus.monitoring-stack.svc.cluster.local:9090/prometheus
+      - JAEGER_URI=http://jaeger-query.monitoring-stack.svc.cluster.local:16686/jaeger
+
+
+configMapGenerator:
+  - name: before-notebook
+    files:
+      - startup-hooks/prepare-env.sh
+
+
+resources:
+  - service.yml
+  - statefulset.yml
+  - virtualservice.yml

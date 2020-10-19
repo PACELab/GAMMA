@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: neo4j
+
+spec:
+  template:
+    spec:
+      containers:
+      - name: neo4j
+        resources:
+          requests:
+            cpu: "1"
+            memory: "8Gi"
+          limits:
+            cpu: "2"
+            memory: "8Gi"
+        env:
+        # - name: NEO4J_dbms_default__advertised__address
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: neo4j-env
+        #       key: ADVERTISED_HOST
+        # - name: NEO4J_dbms_connector_http_advertised__address
+        #   value: ':80'
+        - name: NEO4J_dbms_memory_heap_initial__size
+          value: 2G
+        - name: NEO4J_dbms_memory_heap_max__size
+          value: 2G
+        - name: NEO4J_dbms_memory_pagecache_size
+          value: 2G
+        - name: NEO4J_dbms_tx__log_rotation_retention__policy
+          value: 2 days
+        - name: NEO4J_dbms_jvm_additional
+          valueFrom:
+            secretKeyRef:
+              name: neo4j-env
+              key: NEO4J_dbms_jvm_additional
+  volumeClaimTemplates:
+  - metadata:
+      name: "data"
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: "local-path"
+      resources:
+        requests:
+          storage: 20Gi
+  - metadata:
+      name: "logs"
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: "local-path"
+      resources:
+        requests:
+          storage: 2Gi
+  - metadata:
+      name: "plugins"
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: "local-path"
+      resources:
+        requests:
+          storage: 1Gi

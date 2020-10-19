@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: neo4j
+  labels:
+    app: neo4j
+spec:
+  type: ClusterIP
+  selector:
+    app: neo4j
+  ports:
+  - name: http-web
+    port: 7474
+  - name: tcp-bolt
+    port: 7687

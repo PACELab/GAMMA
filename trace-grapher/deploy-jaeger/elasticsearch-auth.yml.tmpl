@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Secret
+type: Opaque
+metadata:
+  name: elasticsearch-auth
+data:
+  ES_USERNAME: ${ES_USERNAME_B64}
+  ES_PASSWORD: ${ES_PASSWORD_B64}
