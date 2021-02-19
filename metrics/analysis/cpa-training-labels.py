@@ -46,6 +46,7 @@ commands = [
 ]
 
 # init
+interval = 5   # sec
 duration = 10  # sec
 intensity = random.randint(0, 100)
 
@@ -114,6 +115,10 @@ def inject():
 if __name__=="__main__":
     train_h5 = h5py.File(train_file_name, 'w')
     test_h5 = h5py.File(test_file_name, 'w')
+    
+    train_h5.label = {}
+    test_h5.label = {}
+
     count = 0
     while count < SIZE_TRAINING_DATA:
         label = inject()
