@@ -35,6 +35,7 @@ spec:
         app-name: social-graph-redis
       name: social-graph-redis
     spec:
+      nodeName: userv10
       containers:
       - name: social-graph-redis
         image: redis

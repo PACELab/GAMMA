@@ -37,8 +37,9 @@ spec:
         app-name: compose-post-service
       name: compose-post-service
     spec:
+      nodeName: userv8
       containers:
       - name: compose-post-service
-        image: yg397/social-network-microservices
+        image: gaganso/threadmanager:service_threads
         command: ["ComposePostService"]
       restartPolicy: Always

@@ -35,6 +35,7 @@ spec:
         app-name: post-storage-memcached
       name: post-storage-memcached
     spec:
+      nodeName: userv8
       containers:
       - name: post-storage-memcached
         image: memcached

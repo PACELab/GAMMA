@@ -35,8 +35,9 @@ spec:
         app-name: user-timeline-service
       name: user-timeline-service
     spec:
+      nodeName: userv10
       containers:
       - name: user-timeline-service
-        image: yg397/social-network-microservices
+        image: gaganso/threadmanager:service_threads
         command: ["UserTimelineService"]
       restartPolicy: Always

@@ -35,6 +35,7 @@ spec:
         app-name: home-timeline-redis
       name: home-timeline-redis
     spec:
+      nodeName: userv10
       containers:
       - name: home-timeline-redis
         image: redis

@@ -35,9 +35,10 @@ spec:
         app-name: post-storage-service
       name: post-storage-service
     spec:
+      nodeName: userv10
       containers:
       - name: post-storage-service
-        image: yg397/social-network-microservices
+        image: gaganso/threadmanager:service_threads
         command: ["PostStorageService"]
         ports: 
         - containerPort: 9090

@@ -35,8 +35,9 @@ spec:
         app-name: social-graph-service
       name: social-graph-service
     spec:
+      nodeName: userv10
       containers:
       - name: social-graph-service
-        image: yg397/social-network-microservices
+        image: gaganso/threadmanager:service_threads
         command: ["SocialGraphService"]
       restartPolicy: Always

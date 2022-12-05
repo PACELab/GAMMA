@@ -35,8 +35,9 @@ spec:
         app-name: unique-id-service
       name: unique-id-service
     spec:
+      nodeName: userv10
       containers:
       - name: unique-id-service
-        image: yg397/social-network-microservices
+        image: gaganso/threadmanager:service_threads
         command: ["UniqueIdService"]
       restartPolicy: Always

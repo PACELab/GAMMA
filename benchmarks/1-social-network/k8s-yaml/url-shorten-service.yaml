@@ -35,8 +35,9 @@ spec:
         app-name: url-shorten-service
       name: url-shorten-service
     spec:
+      nodeName: userv10
       containers:
       - name: url-shorten-service
-        image: yg397/social-network-microservices
+        image: gaganso/threadmanager:service_threads
         command: ["UrlShortenService"]
       restartPolicy: Always

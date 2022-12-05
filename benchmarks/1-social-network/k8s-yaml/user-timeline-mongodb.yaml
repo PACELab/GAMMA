@@ -35,7 +35,8 @@ spec:
         app-name: user-timeline-mongodb
       name: user-timeline-mongodb
     spec:
+      nodeName: userv8
       containers:
       - name: user-timeline-mongodb
-        image: mongo
+        image: mongo:4.2
       restartPolicy: Always

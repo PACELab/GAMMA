@@ -65,6 +65,7 @@ spec:
         app-name: jaeger
       name: jaeger
     spec:
+      nodeName: userv10
       containers:
       - name: jaeger
         image: jaegertracing/all-in-one:latest

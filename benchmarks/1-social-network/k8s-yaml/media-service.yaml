@@ -35,8 +35,9 @@ spec:
         app-name: media-service
       name: media-service
     spec:
+      nodeName: userv10
       containers:
       - name: media-service
-        image: yg397/social-network-microservices
+        image: gaganso/threadmanager:service_threads
         command: ["MediaService"]
       restartPolicy: Always

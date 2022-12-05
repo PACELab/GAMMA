@@ -35,8 +35,9 @@ spec:
         app-name: user-service
       name: user-service
     spec:
+      nodeName: userv10
       containers:
       - name: user-service
-        image: yg397/social-network-microservices
+        image: gaganso/threadmanager:service_threads
         command: ["UserService"]
       restartPolicy: Always

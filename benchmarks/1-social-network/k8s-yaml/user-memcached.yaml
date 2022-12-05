@@ -35,6 +35,7 @@ spec:
         app-name: user-memcached
       name: user-memcached
     spec:
+      nodeName: userv10
       containers:
       - name: user-memcached
         image: memcached

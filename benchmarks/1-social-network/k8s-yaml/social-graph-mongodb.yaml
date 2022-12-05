@@ -35,7 +35,8 @@ spec:
         app-name: social-graph-mongodb
       name: social-graph-mongodb
     spec:
+      nodeName: userv10
       containers:
       - name: social-graph-mongodb
-        image: mongo
+        image: mongo:4.2
       restartPolicy: Always

@@ -37,8 +37,9 @@ spec:
         app-name: write-home-timeline-service
       name: write-home-timeline-service
     spec:
+      nodeName: userv10
       containers:
       - name: write-home-timeline-service
-        image: yg397/social-network-microservices
+        image: gaganso/threadmanager:service_threads
         command: ["WriteHomeTimelineService"]
       restartPolicy: Always

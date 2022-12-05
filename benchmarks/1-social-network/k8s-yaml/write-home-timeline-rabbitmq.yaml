@@ -42,6 +42,7 @@ spec:
         app-name: write-home-timeline-rabbitmq
       name: write-home-timeline-rabbitmq
     spec:
+      nodeName: userv10
       containers:
       - name: write-home-timeline-rabbitmq
         image: rabbitmq

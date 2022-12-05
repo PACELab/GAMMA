@@ -35,8 +35,9 @@ spec:
         app-name: text-service
       name: text-service
     spec:
+      nodeName: userv10
       containers:
       - name: text-service
-        image: yg397/social-network-microservices
+        image: gaganso/threadmanager:service_threads
         command: ["TextService"]
       restartPolicy: Always

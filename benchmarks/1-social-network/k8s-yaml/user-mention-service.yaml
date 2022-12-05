@@ -35,8 +35,9 @@ spec:
         app-name: user-mention-service
       name: user-mention-service
     spec:
+      nodeName: userv10
       containers:
       - name: user-mention-service
-        image: yg397/social-network-microservices
+        image: gaganso/threadmanager:service_threads
         command: ["UserMentionService"]
       restartPolicy: Always

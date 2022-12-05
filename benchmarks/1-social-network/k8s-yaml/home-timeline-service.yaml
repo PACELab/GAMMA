@@ -35,8 +35,9 @@ spec:
         app-name: home-timeline-service
       name: home-timeline-service
     spec:
+      nodeName: userv8
       containers:
       - name: home-timeline-service
-        image: yg397/social-network-microservices
+        image: gaganso/threadmanager:service_threads
         command: ["HomeTimelineService"]
       restartPolicy: Always

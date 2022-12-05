@@ -35,7 +35,8 @@ spec:
         app-name: post-storage-mongodb
       name: post-storage-mongodb
     spec:
+      nodeName: userv10
       containers:
       - name: post-storage-mongodb
-        image: mongo
+        image: mongo:4.2
       restartPolicy: Always

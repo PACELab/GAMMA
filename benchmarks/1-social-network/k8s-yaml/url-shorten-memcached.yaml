@@ -35,6 +35,7 @@ spec:
         app-name: url-shorten-memcached
       name: url-shorten-memcached
     spec:
+      nodeName: userv10
       containers:
       - name: url-shorten-memcached
         image: memcached

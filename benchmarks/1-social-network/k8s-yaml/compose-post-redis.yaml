@@ -35,6 +35,7 @@ spec:
         app-name: compose-post-redis
       name: compose-post-redis
     spec:
+      nodeName: userv10
       containers:
       - name: compose-post-redis
         image: redis
