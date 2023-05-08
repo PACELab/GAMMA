@@ -1,6 +1,6 @@
 # Install docker
   sudo apt update;
-  sudo apt install -qy docker.io=20.10.7-0ubuntu5~18.04.3;
+  sudo apt install -qy docker.io;
   docker -v;
 
 # Enable and start docker
