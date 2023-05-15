@@ -1,0 +1,8 @@
+# exclude everything
+# somefolder/*
+
+# exception to the rule
+# !somefolder/.gitkeep 
+
+benchmarks/1-social-network/volumes/* 
+benchmarks/1-social-network/tmp/*
