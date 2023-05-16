@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app-name: unique-id-service
+    death-star-project: social-network
+  name: unique-id-service
+  namespace: social-network
+spec:
+  ports:
+  - port: 9090
+  selector:
+    app-name: unique-id-service
+    death-star-project: social-network
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app-name: unique-id-service
+    death-star-project: social-network
+  name: unique-id-service
+  namespace: social-network
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app-name: unique-id-service
+      death-star-project: social-network
+  template:
+    metadata:
+      labels:
+        app-name: unique-id-service
+        death-star-project: social-network
+      name: unique-id-service
+    spec:
+      containers:
+      - command:
+        - UniqueIdService
+        image: gaganso/threadmanager:service_threads
+        name: unique-id-service
+        resources:
+          limits:
+            cpu: 2000m
+            memory: 1000Mi
+          requests:
+            cpu: 250m
+            memory: 500Mi
+        volumeMounts:
+        - mountPath: /social-network-microservices/config/parameters-config.txt
+          name: configuration-file
+      restartPolicy: Always
+      volumes:
+      - hostPath:
+          path: /home/ubuntu/firm_compass/benchmarks/1-social-network/config/parameters-config.txt
+          type: File
+        name: configuration-file

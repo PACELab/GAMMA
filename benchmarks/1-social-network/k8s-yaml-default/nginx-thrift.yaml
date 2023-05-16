@@ -1,0 +1,83 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app-name: nginx-thrift
+    death-star-project: social-network
+  name: nginx-thrift
+  namespace: social-network
+spec:
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app-name: nginx-thrift
+    death-star-project: social-network
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app-name: nginx-thrift
+    death-star-project: social-network
+  name: nginx-thrift
+  namespace: social-network
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app-name: nginx-thrift
+      death-star-project: social-network
+  template:
+    metadata:
+      labels:
+        app-name: nginx-thrift
+        death-star-project: social-network
+      name: nginx-thrift
+    spec:
+      containers:
+      - image: yg397/openresty-thrift:xenial
+        name: nginx-thrift
+        ports:
+        - containerPort: 8080
+        resources:
+          limits:
+            cpu: 4000m
+            memory: 1000Mi
+          requests:
+            cpu: 250m
+            memory: 500Mi
+        volumeMounts:
+        - mountPath: /usr/local/openresty/nginx/lua-scripts
+          name: lua-scripts
+        - mountPath: /usr/local/openresty/nginx/pages
+          name: pages
+        - mountPath: /usr/local/openresty/nginx/conf/nginx.conf
+          name: nginx-conf
+        - mountPath: /usr/local/openresty/nginx/jaeger-config.json
+          name: jaeger-config-json
+        - mountPath: /gen-lua
+          name: gen-lua
+      restartPolicy: Always
+      volumes:
+      - hostPath:
+          path: /home/ubuntu/firm_compass/benchmarks/1-social-network/nginx-web-server/lua-scripts-k8s
+          type: Directory
+        name: lua-scripts
+      - hostPath:
+          path: /home/ubuntu/firm_compass/benchmarks/1-social-network/nginx-web-server/pages
+          type: Directory
+        name: pages
+      - hostPath:
+          path: /home/ubuntu/firm_compass/benchmarks/1-social-network/nginx-web-server/conf/nginx-k8s.conf
+          type: File
+        name: nginx-conf
+      - hostPath:
+          path: /home/ubuntu/firm_compass/benchmarks/1-social-network/nginx-web-server/jaeger-config.json
+          type: File
+        name: jaeger-config-json
+      - hostPath:
+          path: /home/ubuntu/firm_compass/benchmarks/1-social-network/gen-lua
+          type: Directory
+        name: gen-lua

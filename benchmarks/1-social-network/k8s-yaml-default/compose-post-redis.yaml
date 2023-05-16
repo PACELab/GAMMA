@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app-name: compose-post-redis
+    death-star-project: social-network
+  name: compose-post-redis
+  namespace: social-network
+spec:
+  ports:
+  - port: 6379
+  selector:
+    app-name: compose-post-redis
+    death-star-project: social-network
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app-name: compose-post-redis
+    death-star-project: social-network
+  name: compose-post-redis
+  namespace: social-network
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app-name: compose-post-redis
+      death-star-project: social-network
+  template:
+    metadata:
+      labels:
+        app-name: compose-post-redis
+        death-star-project: social-network
+      name: compose-post-redis
+    spec:
+      containers:
+      - args:
+        - --maxmemory
+        - 49600mb
+        - --maxmemory-samples
+        - '5'
+        - --hz
+        - '10'
+        - --zset-max-ziplist-entries
+        - '128'
+        image: redis
+        name: compose-post-redis
+        resources:
+          limits:
+            cpu: 2000m
+            memory: 1000Mi
+          requests:
+            cpu: 250m
+            memory: 500Mi
+      restartPolicy: Always

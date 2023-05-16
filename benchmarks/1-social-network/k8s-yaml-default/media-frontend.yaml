@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app-name: media-frontend
+    death-star-project: social-network
+  name: media-frontend
+  namespace: social-network
+spec:
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app-name: media-frontend
+    death-star-project: social-network
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app-name: media-frontend
+    death-star-project: social-network
+  name: media-frontend
+  namespace: social-network
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app-name: media-frontend
+      death-star-project: social-network
+  template:
+    metadata:
+      labels:
+        app-name: media-frontend
+        death-star-project: social-network
+      name: media-frontend
+    spec:
+      containers:
+      - image: yg397/media-frontend:xenial
+        name: media-frontend
+        ports:
+        - containerPort: 8080
+        resources:
+          limits:
+            cpu: 4000m
+            memory: 1000Mi
+          requests:
+            cpu: 250m
+            memory: 500Mi
+        volumeMounts:
+        - mountPath: /usr/local/openresty/nginx/lua-scripts
+          name: lua-scripts
+        - mountPath: /usr/local/openresty/nginx/conf/nginx.conf
+          name: nginx-conf
+      restartPolicy: Always
+      volumes:
+      - hostPath:
+          path: /home/ubuntu/firm_compass/benchmarks/1-social-network/media-frontend/lua-scripts-k8s
+          type: Directory
+        name: lua-scripts
+      - hostPath:
+          path: /home/ubuntu/firm_compass/benchmarks/1-social-network/media-frontend/conf/nginx-k8s.conf
+          type: File
+        name: nginx-conf
