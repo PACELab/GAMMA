@@ -34,7 +34,7 @@ EOF
 
 # install packages
 # Don't pass "-y" flag as packages could already be installed and held at a particular version
-  sudo apt install -qy kubeadm=1.24.2-00 kubelet=1.24.2-00 kubectl=1.24.2-00;
+  sudo apt install -qy kubeadm=1.27.2-00 kubelet=1.27.2-00 kubectl=1.27.2-00;
 
 
 # avoids the package being automatically updated. Good for stability
