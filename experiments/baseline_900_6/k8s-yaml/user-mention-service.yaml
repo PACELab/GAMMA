@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app-name: user-mention-service
+    death-star-project: social-network
+  name: user-mention-service
+  namespace: social-network
+spec:
+  ports:
+  - port: 9090
+  selector:
+    app-name: user-mention-service
+    death-star-project: social-network
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app-name: user-mention-service
+    death-star-project: social-network
+  name: user-mention-service
+  namespace: social-network
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app-name: user-mention-service
+      death-star-project: social-network
+  template:
+    metadata:
+      labels:
+        app-name: user-mention-service
+        death-star-project: social-network
+      name: user-mention-service
+    spec:
+      containers:
+      - command:
+        - UserMentionService
+        image: gaganso/threadmanager:service_threads
+        name: user-mention-service
+        resources:
+          limits:
+            cpu: 2000m
+            memory: 1000Mi
+          requests:
+            cpu: 250m
+            memory: 500Mi
+        volumeMounts:
+        - mountPath: /social-network-microservices/config/parameters-config.txt
+          name: configuration-file
+      nodeSelector:
+        kubernetes.io/hostname: userv10
+      restartPolicy: Always
+      volumes:
+      - hostPath:
+          path: /home/ubuntu/firm_compass/benchmarks/1-social-network/config/parameters-config.txt
+          type: File
+        name: configuration-file

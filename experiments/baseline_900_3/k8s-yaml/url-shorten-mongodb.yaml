@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app-name: url-shorten-mongodb
+    death-star-project: social-network
+  name: url-shorten-mongodb
+  namespace: social-network
+spec:
+  ports:
+  - port: 27017
+  selector:
+    app-name: url-shorten-mongodb
+    death-star-project: social-network
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app-name: url-shorten-mongodb
+    death-star-project: social-network
+  name: url-shorten-mongodb
+  namespace: social-network
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app-name: url-shorten-mongodb
+      death-star-project: social-network
+  template:
+    metadata:
+      labels:
+        app-name: url-shorten-mongodb
+        death-star-project: social-network
+      name: url-shorten-mongodb
+    spec:
+      containers:
+      - args:
+        - --wiredTigerCacheSizeGB
+        - '30.5'
+        - --setParameter
+        - wiredTigerConcurrentReadTransactions=128
+        - --setParameter
+        - wiredTigerConcurrentWriteTransactions=128
+        image: mongo:4.2
+        name: url-shorten-mongodb
+        resources:
+          limits:
+            cpu: 2000m
+            memory: 1000Mi
+          requests:
+            cpu: 250m
+            memory: 500Mi
+      nodeSelector:
+        kubernetes.io/hostname: userv9
+      restartPolicy: Always
