@@ -86,7 +86,7 @@ def get_traces(destination, end_time, request_type = "compose", service = 'nginx
     experiment_duration = 2 * 24 * 60 * 60 * 1000 * 1000 # microseconds
     #TODO: remove?
     delta = 2 * 60 * 1000 * 1000 # 2 of delta minutes
-    traces_per_lookup = 100
+    traces_per_lookup = 500
     n_collected_traces = 0
     total_requests = 10000
     current_end_time = end_time
@@ -94,7 +94,8 @@ def get_traces(destination, end_time, request_type = "compose", service = 'nginx
     current_start_time = end_time - lookback
     all_traces = []
     all_trace_ids = set()
-    while(n_collected_traces < total_requests):
+    new_traces_added = True
+    while(n_collected_traces < total_requests) and new_traces_added:
         n_traces_this_lookup = min(traces_per_lookup, (total_requests - n_collected_traces))
         print(n_traces_this_lookup)
         url_prefix = f"http://{jaeger}:16686/api/traces?end={current_end_time}&limit={n_traces_this_lookup}"
@@ -111,8 +112,10 @@ def get_traces(destination, end_time, request_type = "compose", service = 'nginx
             print("Stopping as the number of traces is 0")
             break
         next_end_time = current_end_time
+        new_traces_added = False
         for trace in traces:
             if trace['traceID'] not in all_trace_ids:
+                new_traces_added = True
                 interestedIdx = 0 # this should ideally be the nginx span but good approx
                 trace_start_approx = trace['spans'][interestedIdx]['startTime']
                 next_end_time = min(trace_start_approx, next_end_time)

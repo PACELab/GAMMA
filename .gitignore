@@ -6,3 +6,12 @@
 
 benchmarks/1-social-network/volumes/* 
 benchmarks/1-social-network/tmp/*
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+
+# ignore trace files
+/firm_compass/experiments/**/*_traces.json
