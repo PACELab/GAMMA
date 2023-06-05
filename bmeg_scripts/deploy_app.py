@@ -24,6 +24,10 @@ class Deployment:
             data = list(yaml.load_all(f, Loader=yaml.FullLoader))
     
         return data
+    
+
+
+
 
 
     

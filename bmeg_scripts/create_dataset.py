@@ -62,7 +62,7 @@ def addLatencyOfService(trace, span):
 
 def getReqTypeStats(opFolder, reqType, app, readFromFolder, interference_percentage):
     span_length_dict = {"SN": { "compose": 10, "home": 4, "user": 6, }}
-    traceFile = str(readFromFolder)+"/"+str(reqType)+"_traces.txt"
+    traceFile = str(readFromFolder)+"/"+str(reqType)+"_traces.json"
     output_folder = str(opFolder) + "/bottleneck_dataset/" + str(readFromFolder) + "/"
     os.system("mkdir -p %s" % output_folder)
     with open(traceFile, "r") as storeDataFile:

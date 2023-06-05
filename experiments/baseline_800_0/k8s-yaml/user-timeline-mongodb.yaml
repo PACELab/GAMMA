@@ -1,0 +1,70 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app-name: user-timeline-mongodb
+    death-star-project: social-network
+  name: user-timeline-mongodb
+  namespace: social-network
+spec:
+  ports:
+  - port: 27017
+  selector:
+    app-name: user-timeline-mongodb
+    death-star-project: social-network
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app-name: user-timeline-mongodb
+    death-star-project: social-network
+  name: user-timeline-mongodb
+  namespace: social-network
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app-name: user-timeline-mongodb
+      death-star-project: social-network
+  template:
+    metadata:
+      labels:
+        app-name: user-timeline-mongodb
+        death-star-project: social-network
+      name: user-timeline-mongodb
+    spec:
+      containers:
+      - args:
+        - --wiredTigerCacheSizeGB
+        - '30.5'
+        - --setParameter
+        - wiredTigerConcurrentReadTransactions=128
+        - --setParameter
+        - wiredTigerConcurrentWriteTransactions=128
+        image: mongo:4.2
+        name: user-timeline-mongodb
+        resources:
+          limits:
+            cpu: 2000m
+            memory: 1000Mi
+          requests:
+            cpu: 250m
+            memory: 500Mi
+        volumeMounts:
+        - mountPath: /data/configdb
+          name: configdb
+        - mountPath: /data/db
+          name: db
+      nodeSelector:
+        kubernetes.io/hostname: userv14
+      restartPolicy: Always
+      volumes:
+      - hostPath:
+          path: /home/ubuntu/firm_compass/benchmarks/1-social-network/tmp/user-timeline_mongoconfigdb
+          type: Directory
+        name: configdb
+      - hostPath:
+          path: /home/ubuntu/firm_compass/benchmarks/1-social-network/tmp/user-timeline_mongodb
+          type: Directory
+        name: db
