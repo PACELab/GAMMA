@@ -1,4 +1,5 @@
 import os
+import signal
 import sys
 import subprocess
 import yaml
@@ -6,6 +7,7 @@ import pathlib
 import shutil
 import logging
 import time
+
 
 from kubernetes import client, config, utils
 
@@ -141,12 +143,53 @@ def is_deployment_successful(namespace = "social-network", failure_okay = ["writ
             return False
     return True
 
+
+def get_n_requests(wrk2_log):
+    p = subprocess.run(
+        f"cat {wrk2_log} | grep 'requests in' | awk '{{print $1 }}'", stdout=subprocess.PIPE, shell=True
+    )
+    n_requests = p.stdout.decode("ascii").strip()
+    return int(n_requests)  
+
+service_name_lookup = {
+    # SN app
+    'compose': 'nginx-web-server',
+    'home' :  'nginx-web-server',
+    'user' : 'nginx-web-server' ,
+
+
+    # MM app
+    'reviewCompose' : 'nginx',
+    'reviewRead' : 'nginx',
+    'plot' : 'nginx',
+
+    # TT app
+    'book': 'ts-preserve-other-service',
+    'search': 'ts-travel-service',
+}
+
+operation_name_lookup = {
+        #SN app
+        'compose' : '/wrk2-api/post/compose',
+        'home' : '/wrk2-api/home-timeline/read',
+        'user' : '/wrk2-api/user-timeline/read',
+        #MM app
+    'reviewCompose' : '/wrk2-api/review/compose',
+    'reviewRead' : '/wrk2-api/review/read',
+    'plot' : '/wrk2-api/plot/read',
+    #TT app
+    'search': 'queryInfo', 
+    'book': 'preserve',
+        }
+
 connections = 32
 threads = 16
 namespace = "social-network"
+request_types = ["compose", "home", "user"]
 wrk2_folder = "/home/ubuntu/firm_compass"
 experiment_folder = "/home/ubuntu/firm_compass/experiments"
 rps_list = [600,700,800,900,1000]
+rps_list = [800]
 n_sequences = 10
 worker_nodes = [f"userv{i}" for i in range(2,17)] # read from a config file
 logging.info(f"Worker nodes {worker_nodes}")
@@ -155,11 +198,12 @@ warm_up_duration = 300
 seconds_to_microseconds = 1000 * 1000 
 k8s_source = "/home/ubuntu/firm_compass/benchmarks/1-social-network/k8s-yaml-default"
 
+
 for rps in rps_list:
     for sequence_number in range(n_sequences):
         clean_sn_app(k8s_source)
         clean_up_workers(worker_nodes)
-        destination_folder = os.path.join(experiment_folder, f"baseline_{rps}_{sequence_number}")
+        destination_folder = os.path.join(experiment_folder, f"test_{rps}_{sequence_number}")
         create_folder_p(destination_folder)
         k8s_destination = os.path.join(destination_folder, "k8s-yaml")
         create_folder_p(k8s_destination)
@@ -177,11 +221,24 @@ for rps in rps_list:
 
         frontend_ip = get_service_cluster_ip("nginx-thrift", namespace)
         jaeger_ip = get_service_cluster_ip("jaeger-out", namespace)
+
+        utilization_folder = os.path.join(destination_folder, "utilization_data")
+        create_folder_p(utilization_folder)
+
+        total_duration = warm_up_duration + experiment_duration
+        utilization_reporting_interval = 30 # seconds
+        subprocess.run(
+            f"python3 /home/ubuntu/firm_compass/bmeg_scripts/kube_utilization.py {namespace} {total_duration} {utilization_reporting_interval} {utilization_folder} &",
+                shell=True,
+            )
         start = int(time.time() * seconds_to_microseconds) # epoch time in microseconds
         logging.info(f"Starting the workload at {start}")
         static_workload(warm_up_duration, experiment_duration, destination_folder, frontend_ip, rps)
         end = int(time.time() * seconds_to_microseconds) # epoch time in microseconds
         logging.info(f"Stopping the workload at {end}")
-        #os.system("kubectl port-forward service/jaeger-out -n social-network --address 0.0.0.0 16686:16686 &") 
-        #os.system("sleep 5")
-        #jaeger_fetch.get_traces(destination_folder, end)
+        jaeger_port_forward = subprocess.run("kubectl port-forward service/jaeger-out -n social-network --address 0.0.0.0 16686:16686 &", shell=True, capture_output=True) 
+        os.system("sleep 5")
+        for request in request_types:
+            n_requests = get_n_requests(os.path.join(destination_folder, f"{request}.log"))
+            jaeger_fetch.get_traces(destination_folder, end, n_requests, request_type=request, service = 'nginx-web-server', operation = f"/wrk2-api/post/{request}")
+        os.kill(jaeger_port_forward.pid, signal.SIGTERM)

@@ -71,7 +71,7 @@ def generate_csv(trace_data):
 
 
 
-def get_traces(destination, end_time, request_type = "compose", service = 'nginx-web-server', operation = '/wrk2-api/post/compose', jaeger = 'localhost'):
+def get_traces(destination, end_time, total_requests, request_type = "compose", service = 'nginx-web-server', operation = '/wrk2-api/post/compose', jaeger = 'localhost'):
     traces_file = os.path.join(destination, f"{request_type}_traces.json")
     trace_ids_file = os.path.join(destination, f"{request_type}_trace_ids.txt")
     # Service name and desired operation
@@ -88,7 +88,7 @@ def get_traces(destination, end_time, request_type = "compose", service = 'nginx
     delta = 2 * 60 * 1000 * 1000 # 2 of delta minutes
     traces_per_lookup = 500
     n_collected_traces = 0
-    total_requests = 10000
+    #total_requests = 10000
     current_end_time = end_time
     lookback = (experiment_duration + delta) # you don't have to look back more than this
     current_start_time = end_time - lookback
