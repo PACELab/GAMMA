@@ -190,7 +190,7 @@ wrk2_folder = "/home/ubuntu/firm_compass"
 experiment_folder = "/home/ubuntu/firm_compass/experiments"
 rps_list = [600,700,800,900,1000]
 rps_list = [800]
-n_sequences = 10
+n_sequences = 1
 worker_nodes = [f"userv{i}" for i in range(2,17)] # read from a config file
 logging.info(f"Worker nodes {worker_nodes}")
 experiment_duration = 1200
@@ -198,12 +198,23 @@ warm_up_duration = 300
 seconds_to_microseconds = 1000 * 1000 
 k8s_source = "/home/ubuntu/firm_compass/benchmarks/1-social-network/k8s-yaml-default"
 
+jaeger_port_forward = subprocess.run("kubectl port-forward service/jaeger-out -n social-network --address 0.0.0.0 16686:16686 &", shell=True) 
+destination_folder = "/home/ubuntu/firm_compass/experiments/test_bottlenecked_800_0"
+end = 1685948359760976
+os.system("sleep 5")
+request_types = [ "home", "user"]
+for request in request_types:
+    n_requests = get_n_requests(os.path.join(destination_folder, f"{request}.log"))
+    jaeger_fetch.get_traces(destination_folder, end, n_requests, request_type=request, service = service_name_lookup[request], operation = operation_name_lookup[request])
+#os.kill(jaeger_port_forward.pid, signal.SIGTERM)
+sys.exit()
+
 
 for rps in rps_list:
     for sequence_number in range(n_sequences):
         clean_sn_app(k8s_source)
         clean_up_workers(worker_nodes)
-        destination_folder = os.path.join(experiment_folder, f"test_{rps}_{sequence_number}")
+        destination_folder = os.path.join(experiment_folder, f"test_bottlenecked_{rps}_{sequence_number}")
         create_folder_p(destination_folder)
         k8s_destination = os.path.join(destination_folder, "k8s-yaml")
         create_folder_p(k8s_destination)
@@ -240,5 +251,7 @@ for rps in rps_list:
         os.system("sleep 5")
         for request in request_types:
             n_requests = get_n_requests(os.path.join(destination_folder, f"{request}.log"))
-            jaeger_fetch.get_traces(destination_folder, end, n_requests, request_type=request, service = 'nginx-web-server', operation = f"/wrk2-api/post/{request}")
+            jaeger_fetch.get_traces(destination_folder, end, n_requests, request_type=request, service = service_name_lookup[request], operation = operation_name_lookup[request])
         os.kill(jaeger_port_forward.pid, signal.SIGTERM)
+        # write the list of <bottlencks, source of bottlenecks, and metadata for source>
+        #write_bottlenecks(bottleneck_file, graph_paths)
