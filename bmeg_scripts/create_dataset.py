@@ -3,8 +3,16 @@ from queue import Queue
 import sys
 import json
 import copy
-from collections import defaultdict
+from collections import defaultdict, deque
 import pandas as pd
+import pathlib
+import csv
+
+def create_folder_p(folder):
+    """
+    mkdir -p (create parent directories if necessary. Don't throw error if directory already exists)
+    """
+    pathlib.Path(f"{folder}").mkdir(parents=True, exist_ok=True)
 
 listOfApps = ["SN", "HR", "MM", "TT"]
 
@@ -28,6 +36,71 @@ operation_name_lookup = {
 
 microservice_latency_dict = {}
 
+class TreeNode:
+    def __init__(self, spanID, service_name, operation_name, duration, start_time, children, parent = None ):
+        self.span_id = spanID
+        self.parent = parent
+        self.duration = duration
+        self.start_time = start_time
+        self.service_name = service_name
+        self.operation_name = operation_name
+        self.children = children
+
+
+def buildTree( trace, ignore_warnings = True):
+    spans = trace['spans']
+    processes = trace['processes']
+
+    root = None
+    children_of = defaultdict(list)
+    for span in spans:
+        span_id = span["spanID"]
+        if span_id == span["traceID"]: #this is the root node
+            root = TreeNode(span_id, processes[span["processID"]]["serviceName"], span["operationName"] , span['duration'],span['startTime'], list())
+        else:
+            children_of[span["references"][0]["spanID"]].append(span)
+    total = 0
+
+    queue = deque([root])
+    while queue:
+        current = queue.popleft()
+        for span in children_of[current.span_id]:
+            # each span has only one parent so need to maintain visited set
+            if not ignore_warnings and span["warnings"] is not None:
+                raise
+            node = TreeNode(span["spanID"], processes[span["processID"]]["serviceName"], span["operationName"] , span['duration'],span['startTime'], list())
+            queue.append(node)
+            current.children.append(node)
+        # sort based on process and service name?
+        current.children.sort(key = lambda node: node.service_name + "_" + node.operation_name) # sort the children in ascending order of their end time. 
+    return root
+
+def levelOrderTraverseTree(root):
+    que = Queue()
+    que.put(root)
+    temp_dict = set()
+    repeats = []
+    temp_list = []
+    level = 0
+    while not que.empty():
+        print("LEVEL ", level)
+        sz = que.qsize()
+        for i in range(sz):
+            temp = que.get()
+            print(temp.service_name, temp.operation_name)
+            if (temp.service_name, temp.operation_name) in temp_dict:
+                repeats.append((temp.service_name, temp.operation_name))
+            else:
+                temp_dict.add((temp.service_name, temp.operation_name))
+            temp_list.append((temp.service_name, temp.operation_name))
+            print("children length ", len(temp.children))
+            for child in temp.children:
+                que.put(child)
+        level += 1
+    print(len(temp_dict))
+    print(len(temp_list))
+    print(repeats)
+
 def is_trace_okay(trace):
     global trace_warnings
     global span_warnings
@@ -43,7 +116,7 @@ def getNode(span, trace, spans_dict):
     parent_operation_name = ""
     if len(span['references']) != 0:
         if span['references'][0]['spanID'] != span['spanID']:
-            parent_operation_name = spans_dict[trace['traceID']+span['references'][0]['spanID']]
+            parent_operation_name = spans_dict[f"{trace['traceID']}_{span['references'][0]['spanID']}"]
 
     if parent_operation_name != "":
         node = trace['processes'][span['processID']]['serviceName'] + "_" + parent_operation_name + "_" + span['operationName']
@@ -60,123 +133,123 @@ def addLatencyOfService(trace, span):
         microservice_latency_dict[serviceName].append(span['duration'])
 
 
-def getReqTypeStats(opFolder, reqType, app, readFromFolder, interference_percentage):
-    span_length_dict = {"SN": { "compose": 10, "home": 4, "user": 6, }}
+def get_valid_call_graphs(app, request_type):
+    valid_trace_folder = f"/home/ubuntu/firm_compass/configs/{app}"
+    call_graphs = {}
+    counter = 1
+    for trace_file in os.listdir(valid_trace_folder):
+        if request_type in trace_file:
+            with open(os.path.join(valid_trace_folder, trace_file)) as f:
+                trace = json.load(f)['data'][0]
+                call_graphs[counter] = buildTree(trace)
+                counter += 1
+    
+    return call_graphs
+
+def get_matching_graph(current_graph, valid_graphs):
+    def traverse_graphs(current_root, valid_root):
+        q1, q2 = deque([current_root]), deque([valid_root])
+        
+        while q1 and q2:
+            current = q1.popleft()
+            valid = q2.popleft()
+            if current.service_name != valid.service_name or current.operation_name != valid.operation_name or len(current.children) != len(valid.children):
+                return False
+            for child in current.children:
+                q1.append(child)
+            for child in valid.children:
+                q2.append(child)
+        return (not q1) and (not q2) # queues of matching graphs will be empty
+    
+    for key in valid_graphs:
+        if traverse_graphs(current_graph, valid_graphs[key]):
+            return key
+    
+    return -1
+
+def get_paths(root):
+    """
+    Get paths using BFS as all the other traversals are also in BFS.
+    """
+    paths = []
+    queue = deque([[root, []]])
+    id = 0
+    while queue:
+        cur_node, cur_path = queue.popleft()
+        cur_path.append(str(id))
+        id += 1
+        if not cur_node.children:
+            paths.append("->".join(cur_path))
+        for child in cur_node.children:
+            queue.append([child, cur_path[:]])
+    return paths
+
+def append_trace_data(trace , service_time_data, rpc_start_data):
+    # node_ids not needed as the order should be the same
+    root = buildTree(trace)
+    queue = deque([root])
+    id = 0
+    while queue:
+        cur = queue.popleft()
+        service_time_data[id].append(cur.duration)
+        rpc_start_data[id].append(cur.start_time)
+        id += 1
+        for child in cur.children:
+            queue.append(child)
+
+def write_csv(file, dictionary):
+    """
+    Dictionary of column name and its values
+    """
+    with open(file, "w") as f:
+        writer = csv.writer(f)
+        writer.writerow(dictionary.keys())
+        writer.writerows(zip(*dictionary.values()))
+
+def write_content(file, data):
+    with open(file, "w") as f:
+        f.write(data)
+
+def getReqTypeStats(output_folder, reqType, app, readFromFolder, interference_percentage):
+    span_length_dict = {"SN": { "compose": 30, "home": 7, "user": 6, }}
     traceFile = str(readFromFolder)+"/"+str(reqType)+"_traces.json"
-    output_folder = str(opFolder) + "/bottleneck_dataset/" + str(readFromFolder) + "/"
     os.system("mkdir -p %s" % output_folder)
     with open(traceFile, "r") as storeDataFile:
         traceData = json.load(storeDataFile)['data']
     print("Length of trace data ", len(traceData))
-    fileNamePrefix = output_folder + str(reqType)
 
-    node_to_id = {}
-    id_to_node = {}
-    orderingMap = {}
-    orderingTrace = {}
-    iterator = 0
+    valid_call_graphs = get_valid_call_graphs("SN", reqType )
 
-    """
-    Maintaining a spans_dict to keep track of parent trace_span operation_names.
-    """
-    spans_dict = defaultdict(str)
+    traces_groups = defaultdict(list)
+
     for trace in traceData:
-        for span in trace['spans']:
-            spans_dict[trace['traceID']+span['spanID']] = span['operationName']
+        current_graph = buildTree(trace)
+        key = get_matching_graph(current_graph, valid_call_graphs)
+        if key != -1:
+            traces_groups[key].append(trace)
 
-    # assign an ID to each node (serviceName_operationName) so that call graphs can be uniquely identified by the ordering of the IDs
-    for trace in traceData:
-        for span in trace['spans']:
-            # service names (microservice names) are replaced by IDs of the form p1, p2, p3 and the mapping is present in trace['processes']
-            node = getNode(span, trace, spans_dict)
-            if node not in node_to_id:
-                node_to_id[node] = iterator
-                id_to_node[iterator] = node
-                iterator += 1
+    print(len(traces_groups[1]))
 
-    node_to_id['start_time'] = iterator
-    id_to_node[iterator] = 'start_time'
-    iterator +=1
+    for key in valid_call_graphs:
+        graph_paths = get_paths(valid_call_graphs[key])
+        print(graph_paths)
+        write_content(os.path.join(output_folder, f"graph_paths_{key}"), "\n".join(graph_paths))
+        service_time_data = defaultdict(list)
+        rpc_start_time_data = defaultdict(list)
 
-    node_to_id['interference_percentage'] = iterator
-    id_to_node[iterator] = 'interference_percentage'
-    
-    # filter trace data by removing the ones with warnings:
-    filtered_trace_data = []
-    for trace in traceData:
-        if is_trace_okay(trace):
-            filtered_trace_data.append(trace)
+        for trace in traces_groups[key]:
+            append_trace_data(trace, service_time_data, rpc_start_time_data)
+        #levelOrderTraverseTree(valid_call_graphs[key])
+        write_csv(os.path.join(output_folder, f"service_time_{key}.csv"), service_time_data)
+        write_csv(os.path.join(output_folder, f"rps_start_time_{key}.csv"), rpc_start_time_data)
 
-    print(len(filtered_trace_data))
-    count = 0
-    for trace in filtered_trace_data:
-        ordering = set()
-        # traversing over all the spans (so no backtracking required)
-        for span in trace['spans']:
-            node = getNode(span, trace, spans_dict)
-            ordering.add(node_to_id[node])
-        ordering.add(node_to_id['start_time'])
-        ordering.add(node_to_id['interference_percentage'])
-
-        # To make it hashable
-        ordering = frozenset(sorted(ordering))
-        # some of the traces might having missing spans.
-        if ordering not in orderingMap and len(ordering) >=  span_length_dict[app][reqType]:
-            count += 1
-            orderingMap[ordering] = count
-            orderingTrace[ordering] = trace
-
-    print(orderingMap)
-    
-    for ordering, idx in orderingMap.items():
-        #TODO: Create a file similar to FIRM dataset that shows the graph structure.
-        # 1->2->4
-        # 1->3->5
-        # 1->2->6
-        print("Filename ", fileNamePrefix + '_' + str(idx))
-        opFile = open(fileNamePrefix + '_' + str(idx), "w+")
-        traceFile = open(fileNamePrefix + '_trace_' + str(idx) , "w+")
-        trace = orderingTrace[ordering]
-        ordering = list(ordering)
-        print("Ordering list before printing columns", ordering)
-        for id in ordering:
-            #print("id_to_node[id]", id_to_node[id])
-            opFile.write(str(id_to_node[id])+",")
-        json.dump(trace, traceFile)
-        opFile.write("\n")
-        opFile.close()
-
-    for trace in filtered_trace_data:
-        ordering_latency_dict = {}
-        for span in trace['spans']:
-            node = getNode(span, trace, spans_dict)
-            # if a microservice_method is called multiple times, add their latencies.
-            addLatencyOfService(trace, span)
-            if node_to_id[node] not in ordering_latency_dict:
-                ordering_latency_dict[node_to_id[node]] = span['duration']
-            else:
-                print(node_to_id[node])
-                d = ordering_latency_dict.get(node_to_id[node])
-
-        ordering_latency_dict[node_to_id['start_time']] = span['startTime']
-        ordering_latency_dict[node_to_id['interference_percentage']] = interference_percentage
-
-        sorted_keys = sorted(list(ordering_latency_dict.keys()))
-        ordering = frozenset(sorted_keys)
-        if ordering in orderingMap:
-            idx = orderingMap[ordering]
-            opFile = open(fileNamePrefix + '_' + str(idx), "a")
-            for item in sorted_keys:
-                opFile.write(str(ordering_latency_dict[item])+",")
-            opFile.write("\n")
-            opFile.close()
 
 def main(args):
-    opFolder = args[1]
-    applnName = args[2]
-    readFromFolder = args[3]
-    interference_percentage = args[4]
-
+    applnName = args[1]
+    readFromFolder = args[2]
+    interference_percentage = args[2]
+    opFolder = os.path.join(readFromFolder, "processed_traces")
+    create_folder_p(opFolder)
     if(not(applnName in listOfApps)):
         print("\t Appln: %s is not in recognized list: %s " %
               (applnName, listOfApps))
@@ -184,13 +257,13 @@ def main(args):
 
     if(applnName == "SN"):
         getReqTypeStats(opFolder, 'compose', applnName, readFromFolder, interference_percentage)
-        getReqTypeStats(opFolder, 'home', applnName, readFromFolder, interference_percentage)
-        getReqTypeStats(opFolder, 'user', applnName, readFromFolder, interference_percentage)
+        #getReqTypeStats(opFolder, 'home', applnName, readFromFolder, interference_percentage)
+        #getReqTypeStats(opFolder, 'user', applnName, readFromFolder, interference_percentage)
 
 
 if __name__ == "__main__":
     main(sys.argv)
-    for k, v in microservice_latency_dict.items():
-        series = pd.Series(v)
-        print("Service : " , k)
-        print(series.describe())
+    # for k, v in microservice_latency_dict.items():
+    #     series = pd.Series(v)
+    #     print("Service : " , k)
+    #     print(series.describe())
