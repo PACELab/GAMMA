@@ -7,6 +7,7 @@ from collections import defaultdict, deque
 import pandas as pd
 import pathlib
 import csv
+import logging
 
 def create_folder_p(folder):
     """
@@ -59,20 +60,22 @@ def buildTree( trace, ignore_warnings = True):
             root = TreeNode(span_id, processes[span["processID"]]["serviceName"], span["operationName"] , span['duration'],span['startTime'], list())
         else:
             children_of[span["references"][0]["spanID"]].append(span)
-    total = 0
-
-    queue = deque([root])
-    while queue:
-        current = queue.popleft()
-        for span in children_of[current.span_id]:
-            # each span has only one parent so need to maintain visited set
-            if not ignore_warnings and span["warnings"] is not None:
-                raise
-            node = TreeNode(span["spanID"], processes[span["processID"]]["serviceName"], span["operationName"] , span['duration'],span['startTime'], list())
-            queue.append(node)
-            current.children.append(node)
-        # sort based on process and service name?
-        current.children.sort(key = lambda node: node.service_name + "_" + node.operation_name) # sort the children in ascending order of their end time. 
+            
+    if root is None:
+        logging.warning(f"Trace does not contain parent span.")
+    else:
+        queue = deque([root])
+        while queue:
+            current = queue.popleft()
+            for span in children_of[current.span_id]:
+                # each span has only one parent so need to maintain visited set
+                if not ignore_warnings and span["warnings"] is not None:
+                    raise
+                node = TreeNode(span["spanID"], processes[span["processID"]]["serviceName"], span["operationName"] , span['duration'],span['startTime'], list())
+                queue.append(node)
+                current.children.append(node)
+            # sort based on process and service name?
+            current.children.sort(key = lambda node: node.service_name + "_" + node.operation_name) # sort the children in ascending order of their end time. 
     return root
 
 def levelOrderTraverseTree(root):
@@ -167,22 +170,27 @@ def get_matching_graph(current_graph, valid_graphs):
     
     return -1
 
-def get_paths(root):
+def get_node_name(node):
+    return f"{node.service_name}_{node.operation_name}"
+
+def get_paths_and_ids(root):
     """
     Get paths using BFS as all the other traversals are also in BFS.
     """
     paths = []
+    ids = {} 
     queue = deque([[root, []]])
     id = 0
     while queue:
         cur_node, cur_path = queue.popleft()
         cur_path.append(str(id))
+        ids[id] = get_node_name(cur_node)
         id += 1
         if not cur_node.children:
             paths.append("->".join(cur_path))
         for child in cur_node.children:
             queue.append([child, cur_path[:]])
-    return paths
+    return paths, ids
 
 def append_trace_data(trace , service_time_data, rpc_start_data):
     # node_ids not needed as the order should be the same
@@ -197,7 +205,7 @@ def append_trace_data(trace , service_time_data, rpc_start_data):
         for child in cur.children:
             queue.append(child)
 
-def write_csv(file, dictionary):
+def dict_to_csv(file, dictionary):
     """
     Dictionary of column name and its values
     """
@@ -209,6 +217,11 @@ def write_csv(file, dictionary):
 def write_content(file, data):
     with open(file, "w") as f:
         f.write(data)
+
+def write_dictionary(file, dictionary):
+    with open(file, "w") as f:
+        for key in dictionary:
+            f.write(f"{key}, {dictionary[key]}")
 
 def getReqTypeStats(output_folder, reqType, app, readFromFolder, interference_percentage):
     span_length_dict = {"SN": { "compose": 30, "home": 7, "user": 6, }}
@@ -224,15 +237,17 @@ def getReqTypeStats(output_folder, reqType, app, readFromFolder, interference_pe
 
     for trace in traceData:
         current_graph = buildTree(trace)
-        key = get_matching_graph(current_graph, valid_call_graphs)
-        if key != -1:
-            traces_groups[key].append(trace)
+        if current_graph is not None:
+            key = get_matching_graph(current_graph, valid_call_graphs)
+            if key != -1:
+                traces_groups[key].append(trace)
 
     print(len(traces_groups[1]))
 
     for key in valid_call_graphs:
-        graph_paths = get_paths(valid_call_graphs[key])
+        graph_paths, ids = get_paths_and_ids(valid_call_graphs[key])
         print(graph_paths)
+        write_dictionary(os.path.join(output_folder, f"ids_{key}"), ids)
         write_content(os.path.join(output_folder, f"graph_paths_{key}"), "\n".join(graph_paths))
         service_time_data = defaultdict(list)
         rpc_start_time_data = defaultdict(list)
@@ -240,8 +255,8 @@ def getReqTypeStats(output_folder, reqType, app, readFromFolder, interference_pe
         for trace in traces_groups[key]:
             append_trace_data(trace, service_time_data, rpc_start_time_data)
         #levelOrderTraverseTree(valid_call_graphs[key])
-        write_csv(os.path.join(output_folder, f"service_time_{key}.csv"), service_time_data)
-        write_csv(os.path.join(output_folder, f"rps_start_time_{key}.csv"), rpc_start_time_data)
+        dict_to_csv(os.path.join(output_folder, f"service_time_{key}.csv"), service_time_data)
+        dict_to_csv(os.path.join(output_folder, f"rps_start_time_{key}.csv"), rpc_start_time_data)
 
 
 def main(args):
