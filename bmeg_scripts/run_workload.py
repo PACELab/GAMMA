@@ -198,17 +198,6 @@ warm_up_duration = 300
 seconds_to_microseconds = 1000 * 1000 
 k8s_source = "/home/ubuntu/firm_compass/benchmarks/1-social-network/k8s-yaml-default"
 
-jaeger_port_forward = subprocess.run("kubectl port-forward service/jaeger-out -n social-network --address 0.0.0.0 16686:16686 &", shell=True) 
-destination_folder = "/home/ubuntu/firm_compass/experiments/test_bottlenecked_800_0"
-end = 1685948359760976
-os.system("sleep 5")
-request_types = [ "home", "user"]
-for request in request_types:
-    n_requests = get_n_requests(os.path.join(destination_folder, f"{request}.log"))
-    jaeger_fetch.get_traces(destination_folder, end, n_requests, request_type=request, service = service_name_lookup[request], operation = operation_name_lookup[request])
-#os.kill(jaeger_port_forward.pid, signal.SIGTERM)
-sys.exit()
-
 
 for rps in rps_list:
     for sequence_number in range(n_sequences):
@@ -252,6 +241,7 @@ for rps in rps_list:
         for request in request_types:
             n_requests = get_n_requests(os.path.join(destination_folder, f"{request}.log"))
             jaeger_fetch.get_traces(destination_folder, end, n_requests, request_type=request, service = service_name_lookup[request], operation = operation_name_lookup[request])
-        os.kill(jaeger_port_forward.pid, signal.SIGTERM)
+        # bottleneck on 
+        #os.kill(jaeger_port_forward.pid, signal.SIGTERM)
         # write the list of <bottlencks, source of bottlenecks, and metadata for source>
         #write_bottlenecks(bottleneck_file, graph_paths)
