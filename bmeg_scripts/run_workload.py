@@ -12,6 +12,7 @@ import time
 from kubernetes import client, config, utils
 
 import jaeger_fetch
+import arguments
 
 logging.basicConfig(level=logging.INFO)
 
@@ -120,6 +121,11 @@ def get_pods(namespace):
     return v1.list_namespaced_pod(namespace)
 
 
+def get_nodes():
+    config.load_kube_config()
+    v1 = client.CoreV1Api()
+    return v1.list_node()
+
 def is_app_down():
     pass
 
@@ -136,11 +142,17 @@ def wait_for_state(namespace, state, sleep=30):
 
 def is_deployment_successful(namespace = "social-network", failure_okay = ["write-home-timeline-service"] ):
     pod_list = get_pods(namespace)
+    logging.info("Checking if deployment was successful...")
     for pod in pod_list.items:
+        print("pod name")
+        print(pod.metadata.name)
         name = pod.metadata.name
+        print(pod.status.container_statuses)
         #TODO: breaks if naming convention is changed - https://stackoverflow.com/questions/46204504/kubernetes-pod-naming-convention
         if name.rsplit('-',2)[0] not in failure_okay and pod.status.container_statuses[0].restart_count > 0: # just the deployment name after removing the replica set name and replica names
+            logging.error("App deployment failed :/")
             return False
+    logging.info("Deployment successful!")
     return True
 
 
@@ -151,37 +163,75 @@ def get_n_requests(wrk2_log):
     n_requests = p.stdout.decode("ascii").strip()
     return int(n_requests)  
 
-service_name_lookup = {
-    # SN app
-    'compose': 'nginx-web-server',
-    'home' :  'nginx-web-server',
-    'user' : 'nginx-web-server' ,
+
+def get_service_name(request_type):
+    service_name_lookup = {
+        # SN app
+        'compose': 'nginx-web-server',
+        'home' :  'nginx-web-server',
+        'user' : 'nginx-web-server' ,
+    
+    
+        # MM app
+        'reviewCompose' : 'nginx',
+        'reviewRead' : 'nginx',
+        'plot' : 'nginx',
+    
+        # TT app
+        'book': 'ts-preserve-other-service',
+        'search': 'ts-travel-service',
+    }
+    return service_name_lookup[request_type]
+
+def get_operation_name(request_type):
+    operation_name_lookup = {
+            #SN app
+            'compose' : '/wrk2-api/post/compose',
+            'home' : '/wrk2-api/home-timeline/read',
+            'user' : '/wrk2-api/user-timeline/read',
+            #MM app
+        'reviewCompose' : '/wrk2-api/review/compose',
+        'reviewRead' : '/wrk2-api/review/read',
+        'plot' : '/wrk2-api/plot/read',
+        #TT app
+        'search': 'queryInfo', 
+        'book': 'preserve',
+            }
+    return operation_name_lookup[request_type]
 
 
-    # MM app
-    'reviewCompose' : 'nginx',
-    'reviewRead' : 'nginx',
-    'plot' : 'nginx',
+def get_jaeger_traces(request_types, namespace = "social-network", forwarding_port=16686, service_port=16686, jaeger_service_name="jaeger-out"):
+    jaeger_port_forward = subprocess.Popen(f"kubectl port-forward service/{jaeger_service_name} -n {namespace} --address 0.0.0.0 {forwarding_port}:{service_port} &", shell=True) 
+    os.system("sleep 5")
+    for request in request_types:
+        n_requests = get_n_requests(os.path.join(destination_folder, f"{request}.log"))
+        jaeger_fetch.get_traces(destination_folder, end, n_requests, request_type=request, service = get_service_name(request), operation = get_operation_name(request))
+    os.kill(jaeger_port_forward.pid, signal.SIGTERM)
 
-    # TT app
-    'book': 'ts-preserve-other-service',
-    'search': 'ts-travel-service',
-}
 
-operation_name_lookup = {
-        #SN app
-        'compose' : '/wrk2-api/post/compose',
-        'home' : '/wrk2-api/home-timeline/read',
-        'user' : '/wrk2-api/user-timeline/read',
-        #MM app
-    'reviewCompose' : '/wrk2-api/review/compose',
-    'reviewRead' : '/wrk2-api/review/read',
-    'plot' : '/wrk2-api/plot/read',
-    #TT app
-    'search': 'queryInfo', 
-    'book': 'preserve',
-        }
 
+
+def save_logs(pod_list, namespace, destination):
+    for pod in pod_list.items:
+        # save both output and errors
+        os.system(f"kubectl logs {pod.metadata.name} -n {namespace} > {destination}/{pod.metadata.name}.log 2>&1")
+        # get the previously terminated container's log if it exists
+        os.system(
+            f"kubectl logs {pod.metadata.name} -n {namespace} --previous > {destination}/{pod.metadata.name}_previous.log 2>&1"
+        )
+
+def save_pods_describe(pod_list, namespace, destination ):
+    for pod in pod_list.items:
+        # save both output and errors
+        os.system(f"kubectl describe pods {pod.metadata.name} -n {namespace} > {destination}/{pod.metadata.name}.log 2>&1")
+
+def save_nodes_describe(node_list, destination ):
+    for node in node_list.items:
+        # save both output and errors
+        os.system(f"kubectl describe nodes {node.metadata.name} > {destination}/{node.metadata.name}.log 2>&1")
+
+
+args = arguments.argument_parser()
 connections = 32
 threads = 16
 namespace = "social-network"
@@ -198,12 +248,13 @@ warm_up_duration = 300
 seconds_to_microseconds = 1000 * 1000 
 k8s_source = "/home/ubuntu/firm_compass/benchmarks/1-social-network/k8s-yaml-default"
 
-
+is_deployment_successful(namespace = "social-network", failure_okay = ["write-home-timeline-service"] )
+sys.exit()
 for rps in rps_list:
     for sequence_number in range(n_sequences):
         clean_sn_app(k8s_source)
         clean_up_workers(worker_nodes)
-        destination_folder = os.path.join(experiment_folder, f"test_bottlenecked_{rps}_{sequence_number}")
+        destination_folder = os.path.join(experiment_folder, f"{args.experiment_name}_{rps}_{sequence_number}")
         create_folder_p(destination_folder)
         k8s_destination = os.path.join(destination_folder, "k8s-yaml")
         create_folder_p(k8s_destination)
@@ -236,12 +287,21 @@ for rps in rps_list:
         static_workload(warm_up_duration, experiment_duration, destination_folder, frontend_ip, rps)
         end = int(time.time() * seconds_to_microseconds) # epoch time in microseconds
         logging.info(f"Stopping the workload at {end}")
-        jaeger_port_forward = subprocess.run("kubectl port-forward service/jaeger-out -n social-network --address 0.0.0.0 16686:16686 &", shell=True, capture_output=True) 
-        os.system("sleep 5")
-        for request in request_types:
-            n_requests = get_n_requests(os.path.join(destination_folder, f"{request}.log"))
-            jaeger_fetch.get_traces(destination_folder, end, n_requests, request_type=request, service = service_name_lookup[request], operation = operation_name_lookup[request])
-        # bottleneck on 
-        #os.kill(jaeger_port_forward.pid, signal.SIGTERM)
+        app_pod_list = get_pods(namespace)
+        pods_logs_destination = os.path.join(destination_folder, "pod_logs")
+        save_logs(app_pod_list, namespace, pods_logs_destination)
+        pods_describe_destination = os.path.join(destination_folder, "pods_describe")
+        save_pods_describe(app_pod_list, namespace, pods_describe_destination )
+        
+        system_pod_list = get_pods(namespace)
+        kube_logs_destination = os.path.join( destination_folder, "kube_logs")
+        save_logs(system_pod_list, "kube-system", kube_logs_destination)
+        
+        nodes_describe_folder = os.path.join( destination_folder, "nodes_describe")
+        node_list = get_nodes()
+        save_nodes_describe(node_list, nodes_describe_folder )
+
+        get_jaeger_traces(request_types)
+
         # write the list of <bottlencks, source of bottlenecks, and metadata for source>
         #write_bottlenecks(bottleneck_file, graph_paths)
