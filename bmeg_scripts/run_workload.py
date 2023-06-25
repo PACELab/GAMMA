@@ -129,20 +129,23 @@ def get_nodes():
 def is_app_down():
     pass
 
-def wait_for_state(namespace, state, sleep=30):
+def wait_for_state(namespace, state, sleep=30, max_wait=120):
     pod_list = get_pods(namespace)
-    while True:
-        end = 1
-        for pod in pod_list.items:
-            if pod.status.phase != state:
-                end = 0
-        if end:
+    wait = 0
+    while wait < max_wait:
+        if all(pod.status.phase == state for pod in pod_list.items):
             break
+        logging.info(f"Sleeping for {sleep}s waiting for the app to reach state {state}")
         os.system(f"sleep {sleep}")
+        wait += sleep
+    else:
+        logging.error("App didn't reach the expected state: {state}")
+        raise
 
 def is_deployment_successful(namespace = "social-network", failure_okay = ["write-home-timeline-service"] ):
     pod_list = get_pods(namespace)
     logging.info("Checking if deployment was successful...")
+    wait_for_state(namespace, "Running") 
     for pod in pod_list.items:
         print("pod name")
         print(pod.metadata.name)
@@ -248,8 +251,6 @@ warm_up_duration = 300
 seconds_to_microseconds = 1000 * 1000 
 k8s_source = "/home/ubuntu/firm_compass/benchmarks/1-social-network/k8s-yaml-default"
 
-is_deployment_successful(namespace = "social-network", failure_okay = ["write-home-timeline-service"] )
-sys.exit()
 for rps in rps_list:
     for sequence_number in range(n_sequences):
         clean_sn_app(k8s_source)
