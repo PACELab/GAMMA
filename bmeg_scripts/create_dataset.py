@@ -221,7 +221,7 @@ def write_content(file, data):
 def write_dictionary(file, dictionary):
     with open(file, "w") as f:
         for key in dictionary:
-            f.write(f"{key}, {dictionary[key]}")
+            f.write(f"{key},{dictionary[key]}\n")
 
 def getReqTypeStats(output_folder, reqType, app, readFromFolder, interference_percentage):
     span_length_dict = {"SN": { "compose": 30, "home": 7, "user": 6, }}
@@ -259,10 +259,7 @@ def getReqTypeStats(output_folder, reqType, app, readFromFolder, interference_pe
         dict_to_csv(os.path.join(output_folder, f"rps_start_time_{key}.csv"), rpc_start_time_data)
 
 
-def main(args):
-    applnName = args[1]
-    readFromFolder = args[2]
-    interference_percentage = args[2]
+def main(applnName, readFromFolder, interference_percentage):
     opFolder = os.path.join(readFromFolder, "processed_traces")
     create_folder_p(opFolder)
     if(not(applnName in listOfApps)):
@@ -277,8 +274,7 @@ def main(args):
 
 
 if __name__ == "__main__":
-    main(sys.argv)
-    # for k, v in microservice_latency_dict.items():
-    #     series = pd.Series(v)
-    #     print("Service : " , k)
-    #     print(series.describe())
+    applnName = sys.argv[1]
+    readFromFolder = sys.argv[2]
+    interference_percentage = sys.argv[2]
+    main(applnName, readFromFolder, interference_percentage)
