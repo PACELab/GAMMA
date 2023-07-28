@@ -35,6 +35,7 @@ import logging
 import json
 import time
 import os
+import sys
 
 
 def extract_traces(service_name, traces):
@@ -70,18 +71,19 @@ def generate_csv(trace_data):
     df.to_csv('jaeger_traces.csv', index=False)
 
 
+# https://stackoverflow.com/questions/3160699/python-progress-bar
+def show(j, count, prefix="", size=60,  out=sys.stdout):
+    if j <= count:
+        x = int(size*j/count)
+        print(f"{prefix}[{u'█'*x}{('.'*(size-x))}] {j}/{count}", end='\r', file=out, flush=True)
+    else:
+        print("\n", flush=True, file=out)
+
 
 def get_traces(destination, end_time, total_requests, request_type = "compose", service = 'nginx-web-server', operation = '/wrk2-api/post/compose', jaeger = 'localhost'):
     traces_file = os.path.join(destination, f"{request_type}_traces.json")
     trace_ids_file = os.path.join(destination, f"{request_type}_trace_ids.txt")
     # Service name and desired operation
-    
-    
-    
-    # Retrieve traces from Jaeger API
-    #url = f'{jaeger_api_url}/api/traces?service={service_name}&operation={operation_name}&limit=100000'
-    #response = requests.get(url).json()
-    #traces = response['data']
     
     experiment_duration = 2 * 24 * 60 * 60 * 1000 * 1000 # microseconds
     #TODO: remove?
@@ -95,19 +97,17 @@ def get_traces(destination, end_time, total_requests, request_type = "compose", 
     all_traces = []
     all_trace_ids = set()
     new_traces_added = True
+    logging.info(f"Experiment folder: {destination}")
     while(n_collected_traces < total_requests) and new_traces_added:
         n_traces_this_lookup = min(traces_per_lookup, (total_requests - n_collected_traces))
-        print(n_traces_this_lookup)
         url_prefix = f"http://{jaeger}:16686/api/traces?end={current_end_time}&limit={n_traces_this_lookup}"
         url_suffix = f"&operation={operation}&service={service}&start={current_start_time}"
         url = str(url_prefix)+str(url_suffix)
     
-        logging.info(f"Url {url}")
         res = requests.get(url)
     
         jdata = json.loads(res.content.decode('utf-8'))
         traces = jdata['data']
-        print ("\t len(traces): %d "%(len(traces)))
         if len(traces) == 0:
             print("Stopping as the number of traces is 0")
             break
@@ -123,7 +123,7 @@ def get_traces(destination, end_time, total_requests, request_type = "compose", 
                 all_traces.append(trace)
                 n_collected_traces+=1
                 diffFromStartTime = (trace_start_approx - current_start_time)/(1000*1000)
-                print ("\t req-num: %d traceID: %s curTraceStartTime: %s nextSetEndTime: %s diffFromStartTime: %.3f "%(n_collected_traces,trace['traceID'],trace_start_approx,next_end_time ,diffFromStartTime))
+                #print ("\t req-num: %d traceID: %s curTraceStartTime: %s nextSetEndTime: %s diffFromStartTime: %.3f "%(n_collected_traces,trace['traceID'],trace_start_approx,next_end_time ,diffFromStartTime))
     
     
         current_end_time = next_end_time
@@ -133,9 +133,12 @@ def get_traces(destination, end_time, total_requests, request_type = "compose", 
         deltaTS = current_end_time - current_start_time 
         deltaTS/=(1000*1000)
         diff = (current_end_time - current_start_time)/(1000*1000)
-        print ("\t New startTime: %d endTime: %d diff: %.3f deltaTS: %.3f "%(current_start_time, current_end_time,diff,deltaTS))
-    print(len(all_traces))
-    print(len(all_trace_ids))
+ 
+        show(n_collected_traces, total_requests, "Collecting traces:")
+
+        #print ("\t New startTime: %d endTime: %d diff: %.3f deltaTS: %.3f "%(current_start_time, current_end_time,diff,deltaTS))
+    
+    logging.info(f"\nTotal traces collected {len(all_traces)}")
     data = {"data":all_traces}
     with open(traces_file, "w") as f:
         json.dump(data, f)
