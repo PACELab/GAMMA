@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elasticsearch
+  namespace: social-network
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: elasticsearch
+  template:
+    metadata:
+      labels:
+        app: elasticsearch
+    spec:
+      containers:
+      - name: elasticsearch
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
+        ports:
+        - containerPort: 9200
+        resources:
+          limits:
+            memory: 2Gi
+          requests:
+            memory: 1Gi
+        env:
+          - name: discovery.type
+            value: "single-node"
+          - name: "ES_JAVA_OPTS"
+            value: "-Xms512m -Xmx512m"        
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch
+  namespace: social-network
+spec:
+  selector:
+    app: elasticsearch
+  ports:
+    - name: rest
+      port: 9200
+      targetPort: 9200
+    - name: inter-node
+      port: 9300
+      targetPort: 9300
