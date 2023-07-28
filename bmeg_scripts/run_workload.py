@@ -7,14 +7,25 @@ import pathlib
 import shutil
 import logging
 import time
+import requests
+import json
+import threading
 
 
 from kubernetes import client, config, utils
 
 import jaeger_fetch
 import arguments
+import create_dataset
 
 logging.basicConfig(level=logging.INFO)
+
+class Bottlenecks:
+    def __init__(self, node, measure_list, duration_list):
+        self.node = node
+        self.measure_list = measure_list
+        self.duration_list = duration_list
+
 
 
 def create_folder_p(folder):
@@ -142,15 +153,12 @@ def wait_for_state(namespace, state, sleep=30, max_wait=120):
         logging.error("App didn't reach the expected state: {state}")
         raise
 
-def is_deployment_successful(namespace = "social-network", failure_okay = ["write-home-timeline-service"] ):
+def is_deployment_successful(namespace = "social-network", failure_okay = ["write-home-timeline-service", "jaeger"] ):
     pod_list = get_pods(namespace)
     logging.info("Checking if deployment was successful...")
     wait_for_state(namespace, "Running") 
     for pod in pod_list.items:
-        print("pod name")
-        print(pod.metadata.name)
         name = pod.metadata.name
-        print(pod.status.container_statuses)
         #TODO: breaks if naming convention is changed - https://stackoverflow.com/questions/46204504/kubernetes-pod-naming-convention
         if name.rsplit('-',2)[0] not in failure_okay and pod.status.container_statuses[0].restart_count > 0: # just the deployment name after removing the replica set name and replica names
             logging.error("App deployment failed :/")
@@ -158,6 +166,47 @@ def is_deployment_successful(namespace = "social-network", failure_okay = ["writ
     logging.info("Deployment successful!")
     return True
 
+def create_CPU_bottlenecks(bottleneck, destination):
+    """
+    duration_list should have periods of non-bottleneck and bottleneck phases.
+    """
+    # TODO: assert that the sum of phases is greater than the experiment duration and the extra time.
+    with open(os.path.join(destination, f"{bottleneck.node}_phases"), "w") as f:
+        for i in range(len(bottleneck.duration_list)):
+            if i%2 ==0:
+                os.system(f"sleep {bottleneck.duration_list[i]}")
+            else:
+                f.write(f"Bottleneck of type CPU with measure {bottleneck.measure_list[i//2]/100} starts at {time.time()}\n")
+                # load percentage should be [0.1]
+                command = f"python3 /home/ubuntu/firm_compass/tools/CPULoadGenerator/CPULoadGenerator.py -l {bottleneck.measure_list[i//2]/100} -d {bottleneck.duration_list[i]} -c 0 -c 1 -c 2 -c 3"
+                p = subprocess.run(f'ssh -i /home/ubuntu/compass.key ubuntu@{bottleneck.node} "{command}"', stdout=subprocess.PIPE, shell=True, check=True)
+                f.write(f"Bottleneck of type CPU with measure {bottleneck.measure_list[i//2]/100} ends at {time.time()}\n")
+
+def create_and_setup_experiment_folder(args, experiments_root, rps, sequence_number):
+    destination_folder = os.path.join(experiments_root, f"{args.experiment_name}_{rps}_{sequence_number}")
+    create_folder_p(destination_folder)
+    with open(os.path.join(destination_folder, 'args.txt'), 'w') as f:
+        json.dump(args.__dict__, f, indent=2)
+    return destination_folder
+
+def deploy_application(destination_folder, placement_config,  worker_nodes, k8s_source, rps, sequence_number):
+    clean_sn_app(k8s_source)
+    clean_up_workers(worker_nodes)
+    create_folder_p(destination_folder)
+    k8s_destination = os.path.join(destination_folder, "k8s-yaml")
+    create_folder_p(k8s_destination)
+    place_pods(placement_config, k8s_source, k8s_destination)
+    set_up_workers(worker_nodes)
+    set_up_sn(k8s_destination)
+    max_retries = 3
+    retries = 0
+    while (not is_deployment_successful()) and (retries < max_retries):
+        retries += 1
+        clean_sn_app(k8s_source)
+        clean_up_workers(worker_nodes)
+        set_up_workers(worker_nodes)
+        set_up_sn(k8s_destination)
+    return destination_folder
 
 def get_n_requests(wrk2_log):
     p = subprocess.run(
@@ -202,79 +251,166 @@ def get_operation_name(request_type):
             }
     return operation_name_lookup[request_type]
 
+def subprocess_bg(cmd):
+    return subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, start_new_session=True)
 
-def get_jaeger_traces(request_types, namespace = "social-network", forwarding_port=16686, service_port=16686, jaeger_service_name="jaeger-out"):
-    jaeger_port_forward = subprocess.Popen(f"kubectl port-forward service/{jaeger_service_name} -n {namespace} --address 0.0.0.0 {forwarding_port}:{service_port} &", shell=True) 
+def subprocess_kill_bg(process):
+    os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+
+def get_jaeger_traces(request_types, end, destination_folder, namespace = "social-network", forwarding_port=16686, service_port=16686, jaeger_service_name="jaeger-out"):
+    # https://stackoverflow.com/questions/4789837/how-to-terminate-a-python-subprocess-launched-with-shell-true/4791612#4791612
+    jaeger_port_forward = subprocess_bg(f"kubectl port-forward service/{jaeger_service_name} -n {namespace} --address 0.0.0.0 {forwarding_port}:{service_port}")
     os.system("sleep 5")
-    for request in request_types:
-        n_requests = get_n_requests(os.path.join(destination_folder, f"{request}.log"))
-        jaeger_fetch.get_traces(destination_folder, end, n_requests, request_type=request, service = get_service_name(request), operation = get_operation_name(request))
-    os.kill(jaeger_port_forward.pid, signal.SIGTERM)
-
-
+    try:
+        for request in request_types:
+            n_requests = get_n_requests(os.path.join(destination_folder, f"{request}.log"))
+            jaeger_fetch.get_traces(destination_folder, end, n_requests, request_type=request, service = get_service_name(request), operation = get_operation_name(request))
+        status = True
+    except Exception as e:
+        logging.error(f"Unable to download jaeger traces: {e}")
+        status = False
+    finally:
+        # https://stackoverflow.com/questions/4789837/how-to-terminate-a-python-subprocess-launched-with-shell-true/4791612#4791612
+        # since shell=True
+        subprocess_kill_bg(jaeger_port_forward)
+        return status
 
 
 def save_logs(pod_list, namespace, destination):
     for pod in pod_list.items:
+        pod_name = pod.metadata.name
         # save both output and errors
-        os.system(f"kubectl logs {pod.metadata.name} -n {namespace} > {destination}/{pod.metadata.name}.log 2>&1")
+        logging.info(f"Saving logs of pod: {pod_name}")
+        os.system(f"kubectl logs {pod_name} -n {namespace} > {destination}/{pod_name}.log 2>&1")
         # get the previously terminated container's log if it exists
         os.system(
-            f"kubectl logs {pod.metadata.name} -n {namespace} --previous > {destination}/{pod.metadata.name}_previous.log 2>&1"
+            f"kubectl logs {pod_name} -n {namespace} --previous > {destination}/{pod_name}_previous.log 2>&1"
         )
 
 def save_pods_describe(pod_list, namespace, destination ):
     for pod in pod_list.items:
         # save both output and errors
-        os.system(f"kubectl describe pods {pod.metadata.name} -n {namespace} > {destination}/{pod.metadata.name}.log 2>&1")
+        pod_name = pod.metadata.name
+        logging.info(f"Saving describe output of pod: {pod_name}")
+        os.system(f"kubectl describe pods {pod_name} -n {namespace} > {destination}/{pod_name}.log 2>&1")
 
 def save_nodes_describe(node_list, destination ):
     for node in node_list.items:
+        node_name = node.metadata.name
         # save both output and errors
-        os.system(f"kubectl describe nodes {node.metadata.name} > {destination}/{node.metadata.name}.log 2>&1")
+        logging.info(f"Saving describe output of node: {node_name}")
+        os.system(f"kubectl describe nodes {node_name} > {destination}/{node_name}.log 2>&1")
 
+
+def get_prometheus_node_metrics(node_list, node_exporter_namespace="monitoring"):
+    metrics = ["node_memory_MemAvailable_bytes", "node_cpu_seconds_total"]
+    monitoring_pod_list = get_pods("monitoring")
+    for pod in monitoring_pod_list:
+        name = pod.metadata.name
+        if "node-exporter" in name:
+            ip = pod.status.pod_ip
+
+def get_prometheus_pod_metrics(pod_list, namespace, experiment_folder, folder =  "prom_metrics", server_url="localhost", port = 9200, duration=1800):
+    metrics = ["container_cpu_usage_seconds_total", 
+    "container_memory_usage_bytes", 
+    "container_network_receive_bytes_total", 
+    "container_network_transmit_bytes_total",
+    "container_fs_writes_bytes_total",
+    "container_fs_reads_bytes_total"
+    ]
+
+    metrics_with_no_container_label = ["container_network_receive_bytes_total", 
+    "container_network_transmit_bytes_total",
+    ]
+    prom_metrics_folder = os.path.join( experiment_folder, folder)
+    create_folder_p(prom_metrics_folder)   
+    # https://stackoverflow.com/questions/4789837/how-to-terminate-a-python-subprocess-launched-with-shell-true/4791612#4791612
+    prometheus_port_forward = subprocess_bg(f"kubectl port-forward service/prometheus-service -n monitoring --address 0.0.0.0 9200:8080")
+    os.system("sleep 5")
+    try:
+        for pod in pod_list.items:
+            for metric in metrics:
+                container = pod.spec.containers[0].name
+                pod_name = pod.metadata.name
+                #logging.debug(f"Saving metric {metric} of container: {container}")
+                if metric in metrics_with_no_container_label:
+                    query = f'{metric}{{namespace="{namespace}", pod="{pod_name}"}}[{duration}s]'
+                else:
+                    query = f'{metric}{{namespace="{namespace}", container="{container}", pod="{pod_name}"}}[{duration}s]'                
+                response =requests.get(f"http://{server_url}:{port}" + '/api/v1/query', params={'query': query})
+                try:
+                    with open(os.path.join(destination, f"{container}_{metric}"), "w") as f:
+                        json.dump(response.json()['data']['result'][0]["values"], f, indent=4)
+                except Exception as e:
+                    logging.error(f"Unable to get {metric} for {container} due to exception: {e}")
+    finally:
+        subprocess_kill_bg(prometheus_port_forward)
+
+def get_pod_logs(namespace, experiment_folder, pod_list, folder):
+    pods_logs_destination = os.path.join(experiment_folder, folder)
+    create_folder_p(pods_logs_destination)
+    save_logs(pod_list, namespace, pods_logs_destination)
+
+def get_pod_describe_logs(namespace, experiment_folder, app_pod_list):
+    pods_describe_destination = os.path.join(experiment_folder, "pods_describe")
+    create_folder_p(pods_describe_destination)
+    save_pods_describe(app_pod_list, namespace, pods_describe_destination )
+
+
+def get_nodes_describe(node_list , experiment_folder):
+    nodes_describe_folder = os.path.join( experiment_folder, "nodes_describe")
+    create_folder_p(nodes_describe_folder)
+    save_nodes_describe(node_list, nodes_describe_folder )
+
+def get_logs_and_metrics(namespace, experiment_folder):
+    app_pod_list = get_pods(namespace)
+    kube_pod_list = get_pods( "kube-system")
+    node_list = get_nodes()
+    
+    get_pod_logs(namespace, experiment_folder, app_pod_list, folder="app_pod_logs")
+    get_pod_logs("kube-system", experiment_folder, kube_pod_list, folder="kube_pod_logs")
+    get_pod_describe_logs(namespace, experiment_folder, app_pod_list, ) 
+    get_nodes_describe(node_list, experiment_folder)     
+    get_prometheus_pod_metrics(app_pod_list, namespace, experiment_folder)
 
 args = arguments.argument_parser()
+app = "SN"
 connections = 32
 threads = 16
 namespace = "social-network"
 request_types = ["compose", "home", "user"]
 wrk2_folder = "/home/ubuntu/firm_compass"
-experiment_folder = "/home/ubuntu/firm_compass/experiments"
-rps_list = [600,700,800,900,1000]
-rps_list = [800]
+experiments_root = "/mnt/experiments"
+rps_list = args.rps
+starting_sequence = args.starting_sequence
 n_sequences = 1
 worker_nodes = [f"userv{i}" for i in range(2,17)] # read from a config file
 logging.info(f"Worker nodes {worker_nodes}")
 experiment_duration = 1200
 warm_up_duration = 300
+setup_duration = 600
 seconds_to_microseconds = 1000 * 1000 
 k8s_source = "/home/ubuntu/firm_compass/benchmarks/1-social-network/k8s-yaml-default"
+bottlenecked_nodes = args.bottlenecked_nodes
+interference_percentage = args.interference_percentage
+phases = args.phases
+threads = []
+placement_config_version = 1
+placement_config = f"/home/ubuntu/firm_compass/benchmarks/1-social-network/placement/{placement_config_version}.csv"
+# get_jaeger_traces(request_types, 1688236926253638, "/mnt/experiments/nobottleneck_prom_jun_30_800_3")
+# sys.exit()
 
 for rps in rps_list:
-    for sequence_number in range(n_sequences):
-        clean_sn_app(k8s_source)
-        clean_up_workers(worker_nodes)
-        destination_folder = os.path.join(experiment_folder, f"{args.experiment_name}_{rps}_{sequence_number}")
-        create_folder_p(destination_folder)
-        k8s_destination = os.path.join(destination_folder, "k8s-yaml")
-        create_folder_p(k8s_destination)
-        place_pods("/home/ubuntu/firm_compass/benchmarks/1-social-network/placement/1.csv", k8s_source, k8s_destination)
-        set_up_workers(worker_nodes)
-        set_up_sn(k8s_destination)
-        max_retries = 3
-        retries = 0
-        while (not is_deployment_successful()) and (retries < max_retries):
-            retries += 1
-            clean_sn_app(k8s_source)
-            clean_up_workers(worker_nodes)
-            set_up_workers(worker_nodes)
-            set_up_sn(k8s_destination)
+    for sequence_number in range(starting_sequence, n_sequences):
+        print(starting_sequence)
+        input()
+        experiment_folder = create_and_setup_experiment_folder(args, experiments_root, rps, sequence_number)
+        deploy_application(experiment_folder, placement_config, worker_nodes, k8s_source, rps, sequence_number)
 
         frontend_ip = get_service_cluster_ip("nginx-thrift", namespace)
         jaeger_ip = get_service_cluster_ip("jaeger-out", namespace)
 
-        utilization_folder = os.path.join(destination_folder, "utilization_data")
+        utilization_folder = os.path.join(experiment_folder, "utilization_data")
         create_folder_p(utilization_folder)
 
         total_duration = warm_up_duration + experiment_duration
@@ -283,26 +419,20 @@ for rps in rps_list:
             f"python3 /home/ubuntu/firm_compass/bmeg_scripts/kube_utilization.py {namespace} {total_duration} {utilization_reporting_interval} {utilization_folder} &",
                 shell=True,
             )
+        logging.info("Creating bottlenecks")
+        for i, node in enumerate(bottlenecked_nodes):
+            threads.append(threading.Thread(target=create_CPU_bottlenecks, args=(Bottlenecks(node,interference_percentage, phases), experiment_folder)))
+            threads[i].start()
         start = int(time.time() * seconds_to_microseconds) # epoch time in microseconds
         logging.info(f"Starting the workload at {start}")
-        static_workload(warm_up_duration, experiment_duration, destination_folder, frontend_ip, rps)
+        static_workload(warm_up_duration, experiment_duration, experiment_folder, frontend_ip, rps)
         end = int(time.time() * seconds_to_microseconds) # epoch time in microseconds
         logging.info(f"Stopping the workload at {end}")
-        app_pod_list = get_pods(namespace)
-        pods_logs_destination = os.path.join(destination_folder, "pod_logs")
-        save_logs(app_pod_list, namespace, pods_logs_destination)
-        pods_describe_destination = os.path.join(destination_folder, "pods_describe")
-        save_pods_describe(app_pod_list, namespace, pods_describe_destination )
-        
-        system_pod_list = get_pods(namespace)
-        kube_logs_destination = os.path.join( destination_folder, "kube_logs")
-        save_logs(system_pod_list, "kube-system", kube_logs_destination)
-        
-        nodes_describe_folder = os.path.join( destination_folder, "nodes_describe")
-        node_list = get_nodes()
-        save_nodes_describe(node_list, nodes_describe_folder )
-
-        get_jaeger_traces(request_types)
+        get_logs_and_metrics(namespace, experiment_folder)
+        if get_jaeger_traces(request_types, end, experiment_folder):
+            create_dataset.main(app, experiment_folder, 0)
+        for thread in threads:
+             thread.join()
 
         # write the list of <bottlencks, source of bottlenecks, and metadata for source>
         #write_bottlenecks(bottleneck_file, graph_paths)
