@@ -1,0 +1,77 @@
+2023-08-01 17:02:55,061 - INFO - Creating bottlenecks
+2023-08-01 17:02:55,062 - INFO - Sleeping for 240
+2023-08-01 17:02:55,063 - INFO - Sleeping for 240
+2023-08-01 17:03:01,556 - INFO - creating bottleneck for 300
+2023-08-01 17:03:01,557 - INFO - creating bottleneck for 300
+2023-08-01 17:03:02,355 - ERROR - Exception occurred in thread for userv4: Command 'ssh -i /home/ubuntu/compass.key ubuntu@userv4 "python3 /home/ubuntu/firm_compass/tools/CPULoadGenerator/CPULoadGenerator.py -l 0.6 -d 300 -c 0 -c 1 -c 2 -c 3"' died with <Signals.SIGINT: 2>.
+Traceback (most recent call last):
+  File "thread_wait.py", line 40, in create_CPU_bottlenecks
+    p = subprocess.run(f'ssh -i /home/ubuntu/compass.key ubuntu@{bottleneck.node} "{command}"', stdout=subprocess.PIPE, shell=True, check=True)
+  File "/usr/lib/python3.6/subprocess.py", line 438, in run
+    output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command 'ssh -i /home/ubuntu/compass.key ubuntu@userv4 "python3 /home/ubuntu/firm_compass/tools/CPULoadGenerator/CPULoadGenerator.py -l 0.6 -d 300 -c 0 -c 1 -c 2 -c 3"' died with <Signals.SIGINT: 2>.
+2023-08-01 17:03:02,360 - ERROR - Exception occurred in thread for userv7: Command 'ssh -i /home/ubuntu/compass.key ubuntu@userv7 "python3 /home/ubuntu/firm_compass/tools/CPULoadGenerator/CPULoadGenerator.py -l 0.6 -d 300 -c 0 -c 1 -c 2 -c 3"' died with <Signals.SIGINT: 2>.
+Traceback (most recent call last):
+  File "thread_wait.py", line 40, in create_CPU_bottlenecks
+    p = subprocess.run(f'ssh -i /home/ubuntu/compass.key ubuntu@{bottleneck.node} "{command}"', stdout=subprocess.PIPE, shell=True, check=True)
+  File "/usr/lib/python3.6/subprocess.py", line 438, in run
+    output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command 'ssh -i /home/ubuntu/compass.key ubuntu@userv7 "python3 /home/ubuntu/firm_compass/tools/CPULoadGenerator/CPULoadGenerator.py -l 0.6 -d 300 -c 0 -c 1 -c 2 -c 3"' died with <Signals.SIGINT: 2>.
+2023-08-01 17:03:38,603 - INFO - Creating bottlenecks
+2023-08-01 17:03:38,604 - INFO - Starting thread
+2023-08-01 17:03:38,605 - INFO - Starting thread
+2023-08-01 17:03:38,605 - INFO - Sleeping for 240
+2023-08-01 17:03:38,606 - INFO - Sleeping for 240
+2023-08-01 17:05:54,840 - INFO - creating bottleneck for 300
+2023-08-01 17:05:54,842 - INFO - creating bottleneck for 300
+2023-08-01 17:05:55,037 - ERROR - Exception occurred in thread for userv7: Command 'ssh -i /home/ubuntu/compass.key ubuntu@userv7 "python3 /home/ubuntu/firm_compass/tools/CPULoadGenerator/CPULoadGenerator.py -l 0.6 -d 300 -c 0 -c 1 -c 2 -c 3"' died with <Signals.SIGINT: 2>.
+Traceback (most recent call last):
+  File "thread_wait.py", line 41, in create_CPU_bottlenecks
+    p = subprocess.run(f'ssh -i /home/ubuntu/compass.key ubuntu@{bottleneck.node} "{command}"', stdout=subprocess.PIPE, shell=True, check=True)
+  File "/usr/lib/python3.6/subprocess.py", line 438, in run
+    output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command 'ssh -i /home/ubuntu/compass.key ubuntu@userv7 "python3 /home/ubuntu/firm_compass/tools/CPULoadGenerator/CPULoadGenerator.py -l 0.6 -d 300 -c 0 -c 1 -c 2 -c 3"' died with <Signals.SIGINT: 2>.
+2023-08-01 17:05:55,039 - ERROR - Exception occurred in thread for userv4: Command 'ssh -i /home/ubuntu/compass.key ubuntu@userv4 "python3 /home/ubuntu/firm_compass/tools/CPULoadGenerator/CPULoadGenerator.py -l 0.6 -d 300 -c 0 -c 1 -c 2 -c 3"' died with <Signals.SIGINT: 2>.
+Traceback (most recent call last):
+  File "thread_wait.py", line 41, in create_CPU_bottlenecks
+    p = subprocess.run(f'ssh -i /home/ubuntu/compass.key ubuntu@{bottleneck.node} "{command}"', stdout=subprocess.PIPE, shell=True, check=True)
+  File "/usr/lib/python3.6/subprocess.py", line 438, in run
+    output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command 'ssh -i /home/ubuntu/compass.key ubuntu@userv4 "python3 /home/ubuntu/firm_compass/tools/CPULoadGenerator/CPULoadGenerator.py -l 0.6 -d 300 -c 0 -c 1 -c 2 -c 3"' died with <Signals.SIGINT: 2>.
+2023-08-01 17:05:56,671 - INFO - Creating bottlenecks
+2023-08-01 17:05:56,672 - INFO - Sleeping for 240
+2023-08-01 17:05:56,673 - INFO - Sleeping for 240
+2023-08-01 17:06:03,985 - INFO - creating bottleneck for 300
+2023-08-01 17:06:03,986 - INFO - creating bottleneck for 300
+2023-08-01 17:06:04,245 - ERROR - Exception occurred in thread for userv4: Command 'ssh -i /home/ubuntu/compass.key ubuntu@userv4 "python3 /home/ubuntu/firm_compass/tools/CPULoadGenerator/CPULoadGenerator.py -l 0.6 -d 300 -c 0 -c 1 -c 2 -c 3"' died with <Signals.SIGINT: 2>.
+Traceback (most recent call last):
+  File "thread_wait.py", line 41, in create_CPU_bottlenecks
+    p = subprocess.run(f'ssh -i /home/ubuntu/compass.key ubuntu@{bottleneck.node} "{command}"', stdout=subprocess.PIPE, shell=True, check=True)
+  File "/usr/lib/python3.6/subprocess.py", line 438, in run
+    output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command 'ssh -i /home/ubuntu/compass.key ubuntu@userv4 "python3 /home/ubuntu/firm_compass/tools/CPULoadGenerator/CPULoadGenerator.py -l 0.6 -d 300 -c 0 -c 1 -c 2 -c 3"' died with <Signals.SIGINT: 2>.
+2023-08-01 17:06:04,247 - ERROR - Exception occurred in thread for userv7: Command 'ssh -i /home/ubuntu/compass.key ubuntu@userv7 "python3 /home/ubuntu/firm_compass/tools/CPULoadGenerator/CPULoadGenerator.py -l 0.6 -d 300 -c 0 -c 1 -c 2 -c 3"' died with <Signals.SIGINT: 2>.
+Traceback (most recent call last):
+  File "thread_wait.py", line 41, in create_CPU_bottlenecks
+    p = subprocess.run(f'ssh -i /home/ubuntu/compass.key ubuntu@{bottleneck.node} "{command}"', stdout=subprocess.PIPE, shell=True, check=True)
+  File "/usr/lib/python3.6/subprocess.py", line 438, in run
+    output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command 'ssh -i /home/ubuntu/compass.key ubuntu@userv7 "python3 /home/ubuntu/firm_compass/tools/CPULoadGenerator/CPULoadGenerator.py -l 0.6 -d 300 -c 0 -c 1 -c 2 -c 3"' died with <Signals.SIGINT: 2>.
+2023-08-01 17:08:08,319 - INFO - Creating bottlenecks
+2023-08-01 17:08:15,842 - INFO - creating bottleneck for 300
+2023-08-01 17:08:15,842 - INFO - creating bottleneck for 300
+2023-08-01 17:08:16,309 - ERROR - Exception occurred in thread for userv7: Command 'ssh -i /home/ubuntu/compass.key ubuntu@userv7 "python3 /home/ubuntu/firm_compass/tools/CPULoadGenerator/CPULoadGenerator.py -l 0.6 -d 300 -c 0 -c 1 -c 2 -c 3"' died with <Signals.SIGINT: 2>.
+Traceback (most recent call last):
+  File "thread_wait.py", line 41, in create_CPU_bottlenecks
+    p = subprocess.run(f'ssh -i /home/ubuntu/compass.key ubuntu@{bottleneck.node} "{command}"', stdout=subprocess.PIPE, shell=True, check=True)
+  File "/usr/lib/python3.6/subprocess.py", line 438, in run
+    output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command 'ssh -i /home/ubuntu/compass.key ubuntu@userv7 "python3 /home/ubuntu/firm_compass/tools/CPULoadGenerator/CPULoadGenerator.py -l 0.6 -d 300 -c 0 -c 1 -c 2 -c 3"' died with <Signals.SIGINT: 2>.
+2023-08-01 17:08:16,310 - ERROR - Exception occurred in thread for userv4: Command 'ssh -i /home/ubuntu/compass.key ubuntu@userv4 "python3 /home/ubuntu/firm_compass/tools/CPULoadGenerator/CPULoadGenerator.py -l 0.6 -d 300 -c 0 -c 1 -c 2 -c 3"' died with <Signals.SIGINT: 2>.
+Traceback (most recent call last):
+  File "thread_wait.py", line 41, in create_CPU_bottlenecks
+    p = subprocess.run(f'ssh -i /home/ubuntu/compass.key ubuntu@{bottleneck.node} "{command}"', stdout=subprocess.PIPE, shell=True, check=True)
+  File "/usr/lib/python3.6/subprocess.py", line 438, in run
+    output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command 'ssh -i /home/ubuntu/compass.key ubuntu@userv4 "python3 /home/ubuntu/firm_compass/tools/CPULoadGenerator/CPULoadGenerator.py -l 0.6 -d 300 -c 0 -c 1 -c 2 -c 3"' died with <Signals.SIGINT: 2>.
+2023-08-01 17:08:51,147 - INFO - Creating bottlenecks
