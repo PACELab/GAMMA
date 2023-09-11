@@ -1,0 +1,30 @@
+0,nginx-web-server_/wrk2-api/post/compose, nginx-thrift
+1,nginx-web-server_/wrk2-api/post/compose, nginx-thrift
+2,nginx-web-server_ComposePost, nginx-thrift
+3,media-service_UploadMedia, media-service
+4,text-service_UploadText, text-service
+5,unique-id-service_UploadUniqueId, unique-id-service
+6,user-service_UploadUserWithUserId, user-service
+7,compose-post-service_UploadMedia, compose-post-service
+8,compose-post-service_UploadText, compose-post-service
+9,url-shorten-service_UploadUrls, url-shorten-service (also calls url-shorten-mongodb, trace missing)
+10,user-mention-service_UploadUserMentions, user-mention-service (also calls memcached and mongodb)
+11,compose-post-service_UploadUniqueId, compose-post-service
+12,compose-post-service_UploadCreator, compose-post-service
+13,compose-post-service_RedisHashSet, compose-post-redis
+14,compose-post-service_RedisHashSet, compose-post-redis
+15,post-storage-service_StorePost, post-storage-service
+16,user-timeline-service_WriteUserTimeline, user-timeline-service
+17,write-home-timeline-service_FanoutHomeTimelines, write-home-timeline-service
+18,compose-post-service_UploadUrls, compose-post-service
+19,compose-post-service_UploadUserMentions, compose-post-service
+20,compose-post-service_RedisHashSet, compose-post-redis
+21,compose-post-service_RedisHashSet, compose-post-redis
+22,post-storage-service_MongoInsertPost, post-storage-mongodb
+23,user-timeline-service_MongoInsert, user-timeline-mongodb
+24,user-timeline-service_RedisUpdate, user-timeline-redis
+25,social-graph-service_GetFollowers, social-graph-service (calls mongodb and redis)
+26,write-home-timeline-service_RedisUpdate, home-timeline-redis
+27,compose-post-service_RedisHashSet, compose-post-redis
+28,compose-post-service_RedisHashSet, compose-post-redis
+29,social-graph-service_RedisGet, social-graph-redis
