@@ -1,0 +1,21 @@
+Traceback (most recent call last):
+  File "bmeg_scripts/run_workload.py", line 15, in <module>
+    from kubernetes import client, config, utils
+  File "/home/ubuntu/.local/lib/python3.6/site-packages/kubernetes/__init__.py", line 19, in <module>
+    from . import client
+  File "/home/ubuntu/.local/lib/python3.6/site-packages/kubernetes/client/__init__.py", line 20, in <module>
+    from kubernetes.client.api.well_known_api import WellKnownApi
+  File "/home/ubuntu/.local/lib/python3.6/site-packages/kubernetes/client/api/__init__.py", line 6, in <module>
+    from kubernetes.client.api.well_known_api import WellKnownApi
+  File "/home/ubuntu/.local/lib/python3.6/site-packages/kubernetes/client/api/well_known_api.py", line 20, in <module>
+    from kubernetes.client.api_client import ApiClient
+  File "/home/ubuntu/.local/lib/python3.6/site-packages/kubernetes/client/api_client.py", line 28, in <module>
+    import kubernetes.client.models
+  File "/home/ubuntu/.local/lib/python3.6/site-packages/kubernetes/client/models/__init__.py", line 140, in <module>
+    from kubernetes.client.models.v1_endpoint_subset import V1EndpointSubset
+  File "<frozen importlib._bootstrap>", line 971, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 955, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 658, in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 577, in module_from_spec
+  File "<frozen importlib._bootstrap>", line 541, in _init_module_attrs
+KeyboardInterrupt

@@ -1,0 +1,80 @@
+2023-08-08 03:29:29.339 INFO run_workload - <module>: Worker nodes ['userv2', 'userv3', 'userv4', 'userv5', 'userv6', 'userv7', 'userv8', 'userv9', 'userv10', 'userv11', 'userv12', 'userv13', 'userv14', 'userv15', 'userv16']
+2023-08-08 03:29:29.341 INFO run_workload - clean_sn_app: Deleting the application.
+service "compose-post-redis" deleted
+deployment.apps "compose-post-redis" deleted
+service "compose-post-service" deleted
+deployment.apps "compose-post-service" deleted
+service "home-timeline-redis" deleted
+deployment.apps "home-timeline-redis" deleted
+service "home-timeline-service" deleted
+deployment.apps "home-timeline-service" deleted
+service "jaeger-out" deleted
+service "jaeger" deleted
+deployment.apps "jaeger" deleted
+service "media-frontend" deleted
+deployment.apps "media-frontend" deleted
+service "media-memcached" deleted
+deployment.apps "media-memcached" deleted
+service "media-mongodb" deleted
+deployment.apps "media-mongodb" deleted
+service "media-service" deleted
+deployment.apps "media-service" deleted
+service "nginx-thrift" deleted
+deployment.apps "nginx-thrift" deleted
+service "post-storage-memcached" deleted
+deployment.apps "post-storage-memcached" deleted
+service "post-storage-mongodb" deleted
+deployment.apps "post-storage-mongodb" deleted
+service "post-storage-service" deleted
+deployment.apps "post-storage-service" deleted
+service "social-graph-mongodb" deleted
+deployment.apps "social-graph-mongodb" deleted
+service "social-graph-redis" deleted
+deployment.apps "social-graph-redis" deleted
+service "social-graph-service" deleted
+deployment.apps "social-graph-service" deleted
+namespace "social-network" deleted
+service "text-service" deleted
+deployment.apps "text-service" deleted
+service "unique-id-service" deleted
+deployment.apps "unique-id-service" deleted
+service "url-shorten-memcached" deleted
+deployment.apps "url-shorten-memcached" deleted
+service "url-shorten-mongodb" deleted
+deployment.apps "url-shorten-mongodb" deleted
+service "url-shorten-service" deleted
+deployment.apps "url-shorten-service" deleted
+service "user-memcached" deleted
+deployment.apps "user-memcached" deleted
+service "user-mention-service" deleted
+deployment.apps "user-mention-service" deleted
+service "user-mongodb" deleted
+deployment.apps "user-mongodb" deleted
+service "user-service" deleted
+deployment.apps "user-service" deleted
+service "user-timeline-mongodb" deleted
+deployment.apps "user-timeline-mongodb" deleted
+service "user-timeline-redis" deleted
+deployment.apps "user-timeline-redis" deleted
+service "user-timeline-service" deleted
+deployment.apps "user-timeline-service" deleted
+service "write-home-timeline-rabbitmq" deleted
+deployment.apps "write-home-timeline-rabbitmq" deleted
+service "write-home-timeline-service" deleted
+deployment.apps "write-home-timeline-service" deleted
+Traceback (most recent call last):
+  File "bmeg_scripts/run_workload.py", line 508, in <module>
+    deploy_application(experiment_folder, placement_config, worker_nodes, k8s_source, rps, sequence_number)
+  File "bmeg_scripts/run_workload.py", line 250, in deploy_application
+    clean_sn_app(k8s_source)
+  File "bmeg_scripts/run_workload.py", line 91, in clean_sn_app
+    subprocess.run(f"kubectl delete -f {k8s_yaml_folder}", shell=True)
+  File "/usr/lib/python3.6/subprocess.py", line 425, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+  File "/usr/lib/python3.6/subprocess.py", line 855, in communicate
+    self.wait()
+  File "/usr/lib/python3.6/subprocess.py", line 1477, in wait
+    (pid, sts) = self._try_wait(0)
+  File "/usr/lib/python3.6/subprocess.py", line 1424, in _try_wait
+    (pid, sts) = os.waitpid(self.pid, wait_flags)
+KeyboardInterrupt

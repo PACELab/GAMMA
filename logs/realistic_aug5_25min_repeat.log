@@ -1,0 +1,21 @@
+2023-08-06 03:47:53.113 INFO run_workload - <module>: Worker nodes ['userv2', 'userv3', 'userv4', 'userv5', 'userv6', 'userv7', 'userv8', 'userv9', 'userv10', 'userv11', 'userv12', 'userv13', 'userv14', 'userv15', 'userv16']
+2023-08-06 03:47:53.145 INFO run_workload - clean_sn_app: Deleting the application.
+service "compose-post-redis" deleted
+deployment.apps "compose-post-redis" deleted
+service "compose-post-service" deleted
+Traceback (most recent call last):
+  File "bmeg_scripts/run_workload.py", line 479, in <module>
+    deploy_application(experiment_folder, placement_config, worker_nodes, k8s_source, rps, sequence_number)
+  File "bmeg_scripts/run_workload.py", line 215, in deploy_application
+    clean_sn_app(k8s_source)
+  File "bmeg_scripts/run_workload.py", line 91, in clean_sn_app
+    subprocess.run(f"kubectl delete -f {k8s_yaml_folder}", shell=True)
+  File "/usr/lib/python3.6/subprocess.py", line 425, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+  File "/usr/lib/python3.6/subprocess.py", line 855, in communicate
+    self.wait()
+  File "/usr/lib/python3.6/subprocess.py", line 1477, in wait
+    (pid, sts) = self._try_wait(0)
+  File "/usr/lib/python3.6/subprocess.py", line 1424, in _try_wait
+    (pid, sts) = os.waitpid(self.pid, wait_flags)
+KeyboardInterrupt
