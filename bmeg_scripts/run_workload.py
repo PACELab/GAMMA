@@ -18,7 +18,12 @@ import jaeger_fetch
 import arguments
 import create_dataset
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    #filename='HISTORYlistener.log',
+    level=logging.DEBUG,
+    format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+)
 
 class Bottlenecks:
     def __init__(self, node, measure_list, duration_list):
@@ -104,18 +109,22 @@ def set_up_sn(k8s_folder):
     subprocess.run(f"kubectl apply -f {k8s_folder}", shell=True, check=True)
     os.system("sleep 120")
 
+def get_wrk2_params(request_type, app):
+    """
+    Customize for app and request_type
+    """
+    return 16, 32
 
-def static_workload(warm_up_duration, experiment_duration, destination_folder, frontend_cluster_ip, rps, port = "8080"):
-        compose_rps = int(rps * 0.1)
-        home_rps = int(rps * 0.6)
-        user_rps = int(rps * 0.3)
-        threads = 16
-        connections = 32
-        if warm_up_duration:
-            subprocess.run(f"{wrk2_folder}/wrk2/wrk -D exp -t {threads} -c {connections} -d {warm_up_duration} -P {destination_folder}/compose_latencies.warm_up -L -s {wrk2_folder}/wrk2/scripts/social-network/compose-post.lua http://{frontend_cluster_ip}:{port}/wrk2-api/post/compose -R {compose_rps} > {destination_folder}/compose.warm_up &", shell=True, check = True)
-            subprocess.run(f"{wrk2_folder}/wrk2/wrk -D exp -t {threads} -c {connections} -d {warm_up_duration} -P {destination_folder}/home_latencies.warm_up -L -s {wrk2_folder}/wrk2/scripts/social-network/read-home-timeline.lua http://{frontend_cluster_ip}:{port}/wrk2-api/home-timeline/read -R {compose_rps} > {destination_folder}/home.warm_up &", shell=True, check = True)
-            subprocess.run(f"{wrk2_folder}/wrk2/wrk -D exp -t {threads} -c {connections} -d {warm_up_duration} -P {destination_folder}/user_latencies.warm_up -L -s {wrk2_folder}/wrk2/scripts/social-network/read-user-timeline.lua http://{frontend_cluster_ip}:{port}/wrk2-api/user-timeline/read -R {compose_rps} > {destination_folder}/user.warm_up &", shell=True, check = True)
-            os.system(f"sleep {warm_up_duration}")
+def get_request_composition(app, rps):
+    """
+    have a dictionary for each app
+    """
+    logging.debug(f"Request compositions: compose - {int(rps * 0.1)}, home - {int(rps * 0.6)}, user - {int(rps * 0.3)}")
+    return int(rps * 0.1), int(rps * 0.6), int(rps * 0.3)
+
+def static_workload(experiment_duration, destination_folder, frontend_cluster_ip, rps, port = "8080"):
+        compose_rps, home_rps, user_rps = get_request_composition(app, rps)
+        threads, connections = get_wrk2_params("", app)
 
         subprocess.run(
             f"{wrk2_folder}/wrk2/wrk -D exp -t {threads}  -c {connections} -d {experiment_duration} -P {destination_folder}/compose_latencies.txt -L -s {wrk2_folder}/wrk2/scripts/social-network/compose-post.lua http://{frontend_cluster_ip}:{port}/wrk2-api/post/compose -R {compose_rps} > {destination_folder}/compose.log &", shell=True, check = True)
@@ -124,6 +133,14 @@ def static_workload(warm_up_duration, experiment_duration, destination_folder, f
         subprocess.run(
             f"{wrk2_folder}/wrk2/wrk -D exp -t {threads}  -c {connections} -d {experiment_duration} -P {destination_folder}/user_latencies.txt -L -s {wrk2_folder}/wrk2/scripts/social-network/read-user-timeline.lua http://{frontend_cluster_ip}:{port}/wrk2-api/user-timeline/read -R {user_rps} > {destination_folder}/user.log &", shell=True, check = True)
         os.system(f"sleep {experiment_duration}")
+
+def warm_up_app(warm_up_duration, destination_folder, frontend_cluster_ip, rps,  port = "8080"):
+    compose_rps, home_rps, user_rps = get_request_composition(app, rps)
+    threads, connections = get_wrk2_params("", app)
+    subprocess.run(f"{wrk2_folder}/wrk2/wrk -D exp -t {threads} -c {connections} -d {warm_up_duration} -P {destination_folder}/compose_latencies.warm_up -L -s {wrk2_folder}/wrk2/scripts/social-network/compose-post.lua http://{frontend_cluster_ip}:{port}/wrk2-api/post/compose -R {compose_rps} > {destination_folder}/compose.warm_up &", shell=True, check = True)
+    subprocess.run(f"{wrk2_folder}/wrk2/wrk -D exp -t {threads} -c {connections} -d {warm_up_duration} -P {destination_folder}/home_latencies.warm_up -L -s {wrk2_folder}/wrk2/scripts/social-network/read-home-timeline.lua http://{frontend_cluster_ip}:{port}/wrk2-api/home-timeline/read -R {home_rps} > {destination_folder}/home.warm_up &", shell=True, check = True)
+    subprocess.run(f"{wrk2_folder}/wrk2/wrk -D exp -t {threads} -c {connections} -d {warm_up_duration} -P {destination_folder}/user_latencies.warm_up -L -s {wrk2_folder}/wrk2/scripts/social-network/read-user-timeline.lua http://{frontend_cluster_ip}:{port}/wrk2-api/user-timeline/read -R {user_rps} > {destination_folder}/user.warm_up &", shell=True, check = True)
+    os.system(f"sleep {warm_up_duration}")
 
 
 def get_pods(namespace):
@@ -153,7 +170,7 @@ def wait_for_state(namespace, state, sleep=30, max_wait=120):
         logging.error("App didn't reach the expected state: {state}")
         raise
 
-def is_deployment_successful(namespace = "social-network", failure_okay = ["write-home-timeline-service", "jaeger"] ):
+def is_deployment_successful(namespace = "social-network", failure_okay = ["write-home-timeline-service"] ):
     pod_list = get_pods(namespace)
     logging.info("Checking if deployment was successful...")
     wait_for_state(namespace, "Running") 
@@ -166,21 +183,70 @@ def is_deployment_successful(namespace = "social-network", failure_okay = ["writ
     logging.info("Deployment successful!")
     return True
 
-def create_CPU_bottlenecks(bottleneck, destination):
+
+def get_io_bottleneck_cmd(measure, duration):
+    # Adds seek delay when accessing the disk.
+    command = f"stress-ng --hdd-seek {measure}ms --timeout {duration}s"
+    return command
+
+def get_network_bottleneck_cmd(measure, duration):
+    command = f"stress-ng --net-delay {measure}ms --timeout {duration}"
+    return command
+
+def get_memory_bottleneck_cmd(measure, duration):
+    """
+    https://unix.stackexchange.com/questions/99334/how-to-fill-90-of-the-free-memory
+    """
+    command = command = f"stress-ng --vm-bytes $(awk '/MemAvailable/{{printf \"%d\\n\", $2 * {measure};}}' < /proc/meminfo)k --vm-keep -m 1 --timeout {duration}"
+    return command
+
+def get_cpu_bottleneck_cmd(measure, duration):
+    command = f"python3 /home/ubuntu/firm_compass/tools/CPULoadGenerator/CPULoadGenerator.py -l {measure} -d {duration} -c 0 -c 1 -c 2 -c 3"
+    return command
+
+def create_bottlenecks_remotely(bottleneck, destination, bottleneck_type):
     """
     duration_list should have periods of non-bottleneck and bottleneck phases.
     """
     # TODO: assert that the sum of phases is greater than the experiment duration and the extra time.
-    with open(os.path.join(destination, f"{bottleneck.node}_phases"), "w") as f:
-        for i in range(len(bottleneck.duration_list)):
-            if i%2 ==0:
-                os.system(f"sleep {bottleneck.duration_list[i]}")
-            else:
-                f.write(f"Bottleneck of type CPU with measure {bottleneck.measure_list[i//2]/100} starts at {time.time()}\n")
-                # load percentage should be [0.1]
-                command = f"python3 /home/ubuntu/firm_compass/tools/CPULoadGenerator/CPULoadGenerator.py -l {bottleneck.measure_list[i//2]/100} -d {bottleneck.duration_list[i]} -c 0 -c 1 -c 2 -c 3"
-                p = subprocess.run(f'ssh -i /home/ubuntu/compass.key ubuntu@{bottleneck.node} "{command}"', stdout=subprocess.PIPE, shell=True, check=True)
-                f.write(f"Bottleneck of type CPU with measure {bottleneck.measure_list[i//2]/100} ends at {time.time()}\n")
+    get_cmd_function = {"cpu": get_cpu_bottleneck_cmd, 
+                     "memory": get_memory_bottleneck_cmd,
+                     "network" : get_network_bottleneck_cmd,
+                     "io" : get_io_bottleneck_cmd,}[bottleneck_type]
+    grace_period = 1 # in seconds
+    current_thread = threading.current_thread().name
+    logging.debug(f"Thread {current_thread} running on {bottleneck.node}")
+    try:
+        with open(os.path.join(destination, f"{bottleneck.node}_phases"), "w") as f:
+            for i in range(len(bottleneck.duration_list)):
+                if i%2 ==0:
+                    logging.debug(f"{current_thread} sleeping for {bottleneck.duration_list[i]}")
+                    os.system(f"sleep {bottleneck.duration_list[i]}")
+                else:
+                    logging.debug(f"{current_thread} creating bottleneck with measure {bottleneck.measure_list[i//2]/100} for {bottleneck.duration_list[i]}")
+                    f.write(f"Bottleneck of type {bottleneck_type} with measure {bottleneck.measure_list[i//2]/100} starts at {time.time()}\n")
+                    # load percentage should be [0.1]
+                    command = get_cmd_function(bottleneck.measure_list[i//2]/100, bottleneck.duration_list[i])
+                    p = subprocess.Popen(f'ssh -i /home/ubuntu/compass.key ubuntu@{bottleneck.node} "{command}"', shell=True)
+                    try:
+                        # the CPU load generator doesn't terminate.
+                        _, _ = p.communicate(timeout=bottleneck.duration_list[i] + grace_period)
+                    except subprocess.TimeoutExpired:
+                        logging.error(f"{current_thread} is stuck.")
+                        p.kill()
+                    f.write(f"Bottleneck of type CPU with measure {bottleneck.measure_list[i//2]/100} ends at {time.time()}\n")
+        logging.debug(f"{current_thread} is terminating...")
+    except Exception as e:
+        logging.exception(f"{current_thread} Exception occurred in thread for {bottleneck.node}: {e}")
+
+
+def creating_bottlenecks(bottlenecked_nodes, interference_percentage, phases, experiment_folder, bottleneck_type="cpu"):
+    threads = []
+    for i, node in enumerate(bottlenecked_nodes):
+        threads.append(threading.Thread(target=create_bottlenecks_remotely, args=(Bottlenecks(node,interference_percentage, phases), experiment_folder, bottleneck_type)))
+        logging.debug(f"Starting thread on {node}")
+        threads[i].start()
+    return threads
 
 def create_and_setup_experiment_folder(args, experiments_root, rps, sequence_number):
     destination_folder = os.path.join(experiments_root, f"{args.experiment_name}_{rps}_{sequence_number}")
@@ -301,22 +367,48 @@ def save_nodes_describe(node_list, destination ):
         logging.info(f"Saving describe output of node: {node_name}")
         os.system(f"kubectl describe nodes {node_name} > {destination}/{node_name}.log 2>&1")
 
+def query_for_prom_metrics(metric, instance):
+    """
+    memory_utilization: (total-available)/total
+    """
+    instance = "your_instance_value"  # Replace with the actual instance value
+    
+    metrics = {
+        "memory_utilization": f'100*(node_memory_MemTotal_bytes{{job="node-exporter", instance="{instance}"}} - '
+                               f'node_memory_MemAvailable_bytes{{job="node-exporter", instance="{instance}"}}) / '
+                               f'node_memory_MemTotal_bytes{{job="node-exporter", instance="{instance}"}}',
+        "node_cpu_seconds_total": ""
+    }
+
+
 
 def get_prometheus_node_metrics(node_list, node_exporter_namespace="monitoring"):
-    metrics = ["node_memory_MemAvailable_bytes", "node_cpu_seconds_total"]
+
     monitoring_pod_list = get_pods("monitoring")
     for pod in monitoring_pod_list:
         name = pod.metadata.name
         if "node-exporter" in name:
             ip = pod.status.pod_ip
+            for metric in metrics:
+                pass
 
 def get_prometheus_pod_metrics(pod_list, namespace, experiment_folder, folder =  "prom_metrics", server_url="localhost", port = 9200, duration=1800):
     metrics = ["container_cpu_usage_seconds_total", 
     "container_memory_usage_bytes", 
+    "container_memory_cache"
+    "container_memory_failcnt",
+    "container_memory_failures_total",
+    "container_oom_events_total",
     "container_network_receive_bytes_total", 
+    "container_network_receive_errors_total",
+    "container_network_receive_packets_dropped_total",
     "container_network_transmit_bytes_total",
     "container_fs_writes_bytes_total",
-    "container_fs_reads_bytes_total"
+    "container_fs_reads_bytes_total",
+    "container_llc_occupancy_bytes",
+    "container_processes",
+    "container_sockets",
+    "container_threads",
     ]
 
     metrics_with_no_container_label = ["container_network_receive_bytes_total", 
@@ -339,7 +431,7 @@ def get_prometheus_pod_metrics(pod_list, namespace, experiment_folder, folder = 
                     query = f'{metric}{{namespace="{namespace}", container="{container}", pod="{pod_name}"}}[{duration}s]'                
                 response =requests.get(f"http://{server_url}:{port}" + '/api/v1/query', params={'query': query})
                 try:
-                    with open(os.path.join(destination, f"{container}_{metric}"), "w") as f:
+                    with open(os.path.join(prom_metrics_folder, f"{container}_{metric}"), "w") as f:
                         json.dump(response.json()['data']['result'][0]["values"], f, indent=4)
                 except Exception as e:
                     logging.error(f"Unable to get {metric} for {container} due to exception: {e}")
@@ -373,6 +465,20 @@ def get_logs_and_metrics(namespace, experiment_folder):
     get_nodes_describe(node_list, experiment_folder)     
     get_prometheus_pod_metrics(app_pod_list, namespace, experiment_folder)
 
+def start_metric_collecter(namespace, experiment_duration, warm_up_duration, experiment_folder):
+    utilization_folder = os.path.join(experiment_folder, "utilization_data")
+    create_folder_p(utilization_folder)
+    total_duration = warm_up_duration + experiment_duration
+    utilization_reporting_interval = 30 # seconds
+    subprocess.run(
+            f"python3 /home/ubuntu/firm_compass/bmeg_scripts/kube_utilization.py {namespace} {total_duration} {utilization_reporting_interval} {utilization_folder} &",
+                shell=True,
+            )
+
+
+#prom_conts
+prom_rate_duration = "3s"
+
 args = arguments.argument_parser()
 app = "SN"
 connections = 32
@@ -383,11 +489,11 @@ wrk2_folder = "/home/ubuntu/firm_compass"
 experiments_root = "/mnt/experiments"
 rps_list = args.rps
 starting_sequence = args.starting_sequence
-n_sequences = 1
+n_sequences = 10
 worker_nodes = [f"userv{i}" for i in range(2,17)] # read from a config file
 logging.info(f"Worker nodes {worker_nodes}")
-experiment_duration = 1200
-warm_up_duration = 300
+experiment_duration = args.experiment_duration
+warm_up_duration = args.warm_up_duration
 setup_duration = 600
 seconds_to_microseconds = 1000 * 1000 
 k8s_source = "/home/ubuntu/firm_compass/benchmarks/1-social-network/k8s-yaml-default"
@@ -397,42 +503,45 @@ phases = args.phases
 threads = []
 placement_config_version = 1
 placement_config = f"/home/ubuntu/firm_compass/benchmarks/1-social-network/placement/{placement_config_version}.csv"
-# get_jaeger_traces(request_types, 1688236926253638, "/mnt/experiments/nobottleneck_prom_jun_30_800_3")
+
+
+# experiment_folder = "/mnt/experiments/realistic_july29_800_0"
+# end = 1690665922773286
+# if get_jaeger_traces(request_types, end, experiment_folder):
+#             create_dataset.main(app, experiment_folder, 0)
 # sys.exit()
 
 for rps in rps_list:
     for sequence_number in range(starting_sequence, n_sequences):
-        print(starting_sequence)
-        input()
         experiment_folder = create_and_setup_experiment_folder(args, experiments_root, rps, sequence_number)
         deploy_application(experiment_folder, placement_config, worker_nodes, k8s_source, rps, sequence_number)
 
         frontend_ip = get_service_cluster_ip("nginx-thrift", namespace)
         jaeger_ip = get_service_cluster_ip("jaeger-out", namespace)
 
-        utilization_folder = os.path.join(experiment_folder, "utilization_data")
-        create_folder_p(utilization_folder)
+        # start_metric_collecter(namespace, experiment_duration, warm_up_duration, experiment_folder)
 
-        total_duration = warm_up_duration + experiment_duration
-        utilization_reporting_interval = 30 # seconds
-        subprocess.run(
-            f"python3 /home/ubuntu/firm_compass/bmeg_scripts/kube_utilization.py {namespace} {total_duration} {utilization_reporting_interval} {utilization_folder} &",
-                shell=True,
-            )
+        start = int(time.time() * seconds_to_microseconds) # epoch time in microseconds
+        logging.info(f"Starting warm-up workload at {start}")
+        warm_up_app(warm_up_duration, experiment_folder, frontend_ip, rps)
+        end = int(time.time() * seconds_to_microseconds) # epoch time in microseconds
+        logging.info(f"Stopping the warm-up workload at {end}")
+
         logging.info("Creating bottlenecks")
-        for i, node in enumerate(bottlenecked_nodes):
-            threads.append(threading.Thread(target=create_CPU_bottlenecks, args=(Bottlenecks(node,interference_percentage, phases), experiment_folder)))
-            threads[i].start()
+        threads = creating_bottlenecks(bottlenecked_nodes, interference_percentage, phases, experiment_folder)
+
         start = int(time.time() * seconds_to_microseconds) # epoch time in microseconds
         logging.info(f"Starting the workload at {start}")
-        static_workload(warm_up_duration, experiment_duration, experiment_folder, frontend_ip, rps)
+        static_workload(experiment_duration, experiment_folder, frontend_ip, rps)
         end = int(time.time() * seconds_to_microseconds) # epoch time in microseconds
         logging.info(f"Stopping the workload at {end}")
+        
         get_logs_and_metrics(namespace, experiment_folder)
         if get_jaeger_traces(request_types, end, experiment_folder):
             create_dataset.main(app, experiment_folder, 0)
         for thread in threads:
-             thread.join()
+            logging.debug(f"is thread alive : {thread.is_alive()}")
+            thread.join()
 
         # write the list of <bottlencks, source of bottlenecks, and metadata for source>
-        #write_bottlenecks(bottleneck_file, graph_paths)
+        #write_bottlenecks(bottleneck_file, graph_pathszz)

@@ -138,7 +138,7 @@ def get_traces(destination, end_time, total_requests, request_type = "compose", 
 
         #print ("\t New startTime: %d endTime: %d diff: %.3f deltaTS: %.3f "%(current_start_time, current_end_time,diff,deltaTS))
     
-    logging.info(f"\nTotal traces collected {len(all_traces)}")
+    logging.info(f"Total traces collected {len(all_traces)}")
     data = {"data":all_traces}
     with open(traces_file, "w") as f:
         json.dump(data, f)

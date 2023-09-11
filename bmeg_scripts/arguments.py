@@ -17,7 +17,8 @@ def argument_parser():
         action="store_true",
         help="If set, overwrites the experiment results from a previous run.",
     )
-
+    parser.add_argument("--experiment_duration", type=int, default = 1200, help="The experiment duration (excluding warm up) in seconds.")
+    parser.add_argument("--warm_up_duration", type=int, default = 300, help="The warm up duration in seconds.")
     parser.add_argument("--bottlenecked_nodes", nargs="+", type=str, help="The nodes that need to be bottlenecked.")
     parser.add_argument("--interference_percentage", nargs="+", type=int, help="The interference measure (e.g., percentage) over each bottleneck period.")
     parser.add_argument("--phases", nargs="+", type=int, help="The periods of non-bottlenecked and bottlenecked duration in seconds.")
