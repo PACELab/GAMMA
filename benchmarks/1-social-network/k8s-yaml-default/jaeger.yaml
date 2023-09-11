@@ -71,10 +71,10 @@ spec:
         env:
         - name: COLLECTOR_ZIPKIN_HTTP_PORT
           value: "9411"
-        - name: SPAN_STORAGE_TYPE
-          value: elasticsearch
-        - name: ES_SERVER_URLS
-          value: "http://elasticsearch:9200" # Replace 'elasticsearch' with the Elasticsearch service name.
-        - name: ES_INDEX_PREFIX
-          value: "jaeger" # Replace 'jaeger' with the desired index prefix.
+        # - name: SPAN_STORAGE_TYPE
+        #   value: elasticsearch
+        # - name: ES_SERVER_URLS
+        #   value: "http://elasticsearch:9200"
+        # - name: ES_INDEX_PREFIX
+        #   value: "jaeger"
       restartPolicy: Always
