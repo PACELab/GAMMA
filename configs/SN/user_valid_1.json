@@ -1,0 +1,435 @@
+{
+    "data": [
+        {
+            "traceID": "5c89037e2d5c447d",
+            "spans": [
+                {
+                    "traceID": "5c89037e2d5c447d",
+                    "spanID": "54e7b47857c4a54c",
+                    "flags": 1,
+                    "operationName": "MongoFindPosts",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "5c89037e2d5c447d",
+                            "spanID": "b3ba6236804c82e9"
+                        }
+                    ],
+                    "startTime": 1694537542301108,
+                    "duration": 1730,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p1",
+                    "warnings": null
+                },
+                {
+                    "traceID": "5c89037e2d5c447d",
+                    "spanID": "f6f60d9093b1a7fd",
+                    "flags": 1,
+                    "operationName": "MmcSetPost",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "5c89037e2d5c447d",
+                            "spanID": "b3ba6236804c82e9"
+                        }
+                    ],
+                    "startTime": 1694537542302912,
+                    "duration": 1706,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p1",
+                    "warnings": null
+                },
+                {
+                    "traceID": "5c89037e2d5c447d",
+                    "spanID": "b3ba6236804c82e9",
+                    "flags": 1,
+                    "operationName": "ReadPosts",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "5c89037e2d5c447d",
+                            "spanID": "eb034b41dceae85e"
+                        }
+                    ],
+                    "startTime": 1694537542300515,
+                    "duration": 4291,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p1",
+                    "warnings": null
+                },
+                {
+                    "traceID": "5c89037e2d5c447d",
+                    "spanID": "fb77459ba5a33663",
+                    "flags": 1,
+                    "operationName": "MemcachedMget",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "5c89037e2d5c447d",
+                            "spanID": "b3ba6236804c82e9"
+                        }
+                    ],
+                    "startTime": 1694537542300629,
+                    "duration": 318,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p1",
+                    "warnings": null
+                },
+                {
+                    "traceID": "5c89037e2d5c447d",
+                    "spanID": "583abd58b658b5ec",
+                    "flags": 1,
+                    "operationName": "/wrk2-api/user-timeline/read",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "5c89037e2d5c447d",
+                            "spanID": "5c89037e2d5c447d"
+                        }
+                    ],
+                    "startTime": 1694537542271175,
+                    "duration": 11528,
+                    "tags": [
+                        {
+                            "key": "component",
+                            "type": "string",
+                            "value": "nginx"
+                        },
+                        {
+                            "key": "nginx.worker_pid",
+                            "type": "string",
+                            "value": "17"
+                        },
+                        {
+                            "key": "peer.address",
+                            "type": "string",
+                            "value": "10.244.0.0:44515"
+                        },
+                        {
+                            "key": "http.method",
+                            "type": "string",
+                            "value": "GET"
+                        },
+                        {
+                            "key": "http.url",
+                            "type": "string",
+                            "value": "http://10.99.115.163:8080/wrk2-api/user-timeline/read?user_id=941\u0026start=100\u0026stop=110"
+                        },
+                        {
+                            "key": "http.host",
+                            "type": "string",
+                            "value": "10.99.115.163:8080"
+                        },
+                        {
+                            "key": "http.status_code",
+                            "type": "int64",
+                            "value": 200
+                        },
+                        {
+                            "key": "http.status_line",
+                            "type": "string",
+                            "value": ""
+                        },
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p2",
+                    "warnings": null
+                },
+                {
+                    "traceID": "5c89037e2d5c447d",
+                    "spanID": "5c89037e2d5c447d",
+                    "flags": 1,
+                    "operationName": "/wrk2-api/user-timeline/read",
+                    "references": [],
+                    "startTime": 1694537542271000,
+                    "duration": 11703,
+                    "tags": [
+                        {
+                            "key": "sampler.type",
+                            "type": "string",
+                            "value": "const"
+                        },
+                        {
+                            "key": "sampler.param",
+                            "type": "bool",
+                            "value": true
+                        },
+                        {
+                            "key": "http.status_code",
+                            "type": "int64",
+                            "value": 200
+                        },
+                        {
+                            "key": "http.status_line",
+                            "type": "string",
+                            "value": ""
+                        },
+                        {
+                            "key": "component",
+                            "type": "string",
+                            "value": "nginx"
+                        },
+                        {
+                            "key": "nginx.worker_pid",
+                            "type": "string",
+                            "value": "17"
+                        },
+                        {
+                            "key": "peer.address",
+                            "type": "string",
+                            "value": "10.244.0.0:44515"
+                        },
+                        {
+                            "key": "http.method",
+                            "type": "string",
+                            "value": "GET"
+                        },
+                        {
+                            "key": "http.url",
+                            "type": "string",
+                            "value": "http://10.99.115.163:8080/wrk2-api/user-timeline/read?user_id=941\u0026start=100\u0026stop=110"
+                        },
+                        {
+                            "key": "http.host",
+                            "type": "string",
+                            "value": "10.99.115.163:8080"
+                        },
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p2",
+                    "warnings": null
+                },
+                {
+                    "traceID": "5c89037e2d5c447d",
+                    "spanID": "1c87e70ecb41c1a8",
+                    "flags": 1,
+                    "operationName": "ReadUserTimeline",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "5c89037e2d5c447d",
+                            "spanID": "583abd58b658b5ec"
+                        }
+                    ],
+                    "startTime": 1694537542271351,
+                    "duration": 19579,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p2",
+                    "warnings": null
+                },
+                {
+                    "traceID": "5c89037e2d5c447d",
+                    "spanID": "20a386acdc8cc4ef",
+                    "flags": 1,
+                    "operationName": "RedisFind",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "5c89037e2d5c447d",
+                            "spanID": "eb034b41dceae85e"
+                        }
+                    ],
+                    "startTime": 1694537542296807,
+                    "duration": 26,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p3",
+                    "warnings": null
+                },
+                {
+                    "traceID": "5c89037e2d5c447d",
+                    "spanID": "91a402fdc2e9c6f3",
+                    "flags": 1,
+                    "operationName": "RedisUpdate",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "5c89037e2d5c447d",
+                            "spanID": "eb034b41dceae85e"
+                        }
+                    ],
+                    "startTime": 1694537542300460,
+                    "duration": 275,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p3",
+                    "warnings": null
+                },
+                {
+                    "traceID": "5c89037e2d5c447d",
+                    "spanID": "eb034b41dceae85e",
+                    "flags": 1,
+                    "operationName": "ReadUserTimeline",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "5c89037e2d5c447d",
+                            "spanID": "1c87e70ecb41c1a8"
+                        }
+                    ],
+                    "startTime": 1694537542296795,
+                    "duration": 8997,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p3",
+                    "warnings": null
+                },
+                {
+                    "traceID": "5c89037e2d5c447d",
+                    "spanID": "7e9e991ad132c305",
+                    "flags": 1,
+                    "operationName": "MongoFindUserTimeline",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "5c89037e2d5c447d",
+                            "spanID": "eb034b41dceae85e"
+                        }
+                    ],
+                    "startTime": 1694537542298216,
+                    "duration": 24,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p3",
+                    "warnings": null
+                }
+            ],
+            "processes": {
+                "p1": {
+                    "serviceName": "post-storage-service",
+                    "tags": [
+                        {
+                            "key": "hostname",
+                            "type": "string",
+                            "value": "post-storage-service-6769bccc79-r4td8"
+                        },
+                        {
+                            "key": "ip",
+                            "type": "string",
+                            "value": "127.0.0.1"
+                        },
+                        {
+                            "key": "jaeger.version",
+                            "type": "string",
+                            "value": "C++-0.4.2"
+                        }
+                    ]
+                },
+                "p2": {
+                    "serviceName": "nginx-web-server",
+                    "tags": [
+                        {
+                            "key": "hostname",
+                            "type": "string",
+                            "value": "nginx-thrift-bd7dc9fb9-mhnn2"
+                        },
+                        {
+                            "key": "ip",
+                            "type": "string",
+                            "value": "127.0.0.1"
+                        },
+                        {
+                            "key": "jaeger.version",
+                            "type": "string",
+                            "value": "C++-0.4.2"
+                        }
+                    ]
+                },
+                "p3": {
+                    "serviceName": "user-timeline-service",
+                    "tags": [
+                        {
+                            "key": "hostname",
+                            "type": "string",
+                            "value": "user-timeline-service-7fdf58bf56-w7spq"
+                        },
+                        {
+                            "key": "ip",
+                            "type": "string",
+                            "value": "127.0.0.1"
+                        },
+                        {
+                            "key": "jaeger.version",
+                            "type": "string",
+                            "value": "C++-0.4.2"
+                        }
+                    ]
+                }
+            },
+            "warnings": null
+        }
+    ],
+    "total": 0,
+    "limit": 0,
+    "offset": 0,
+    "errors": null
+}
