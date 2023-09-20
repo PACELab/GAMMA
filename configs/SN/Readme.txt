@@ -6,6 +6,10 @@ text-service is the last service to finish so does the remaining tasks
 compose_valid_json.2
 unique_upload_id services is the last service
 
+
+compose_valid_json.5
+text-service is the last service to finish. Also, social-graph-service GetFollowers leads to mongo access as redis get fails! (asynchronous and caching. wicked!)
+
 home_valid_json.1
 home-timeline-service calls gets the post IDs from Redis. Passes this to post-storage-service. ReadPosts method of PSS checks if they are in memcached. If some or all or missing, gets them from mongo and sets the memcached too.
 
