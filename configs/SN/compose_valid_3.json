@@ -1,0 +1,1086 @@
+{
+    "data": [
+        {
+            "traceID": "37b7ddb5795c7aad",
+            "spans": [
+                {
+                    "traceID": "37b7ddb5795c7aad",
+                    "spanID": "f1d07b6b1b7d627b",
+                    "flags": 1,
+                    "operationName": "ComposePost",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "37b7ddb5795c7aad",
+                            "spanID": "f8d2df8eba6a9a4d"
+                        }
+                    ],
+                    "startTime": 1690499205859075,
+                    "duration": 26779,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p1",
+                    "warnings": null
+                },
+                {
+                    "traceID": "37b7ddb5795c7aad",
+                    "spanID": "f0f321383281acf8",
+                    "flags": 1,
+                    "operationName": "MongoInsertPost",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "37b7ddb5795c7aad",
+                            "spanID": "cd00281cdf35eff4"
+                        }
+                    ],
+                    "startTime": 1690499205875015,
+                    "duration": 1477,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p2",
+                    "warnings": null
+                },
+                {
+                    "traceID": "37b7ddb5795c7aad",
+                    "spanID": "cd00281cdf35eff4",
+                    "flags": 1,
+                    "operationName": "StorePost",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "37b7ddb5795c7aad",
+                            "spanID": "f29c6ac296b0d76c"
+                        }
+                    ],
+                    "startTime": 1690499205874998,
+                    "duration": 1497,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p2",
+                    "warnings": null
+                },
+                {
+                    "traceID": "37b7ddb5795c7aad",
+                    "spanID": "69c8cc7ea3a9b7a4",
+                    "flags": 1,
+                    "operationName": "UploadCreator",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "37b7ddb5795c7aad",
+                            "spanID": "5000fd6885703109"
+                        }
+                    ],
+                    "startTime": 1690499205860982,
+                    "duration": 1401,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p3",
+                    "warnings": null
+                },
+                {
+                    "traceID": "37b7ddb5795c7aad",
+                    "spanID": "fc5e9dc2065c416c",
+                    "flags": 1,
+                    "operationName": "RedisHashSet",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "37b7ddb5795c7aad",
+                            "spanID": "58cc9da908954efe"
+                        }
+                    ],
+                    "startTime": 1690499205860276,
+                    "duration": 1849,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p3",
+                    "warnings": null
+                },
+                {
+                    "traceID": "37b7ddb5795c7aad",
+                    "spanID": "aa027c156ef8c7dd",
+                    "flags": 1,
+                    "operationName": "RedisHashSet",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "37b7ddb5795c7aad",
+                            "spanID": "69c8cc7ea3a9b7a4"
+                        }
+                    ],
+                    "startTime": 1690499205860990,
+                    "duration": 1139,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p3",
+                    "warnings": null
+                },
+                {
+                    "traceID": "37b7ddb5795c7aad",
+                    "spanID": "58cc9da908954efe",
+                    "flags": 1,
+                    "operationName": "UploadUniqueId",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "37b7ddb5795c7aad",
+                            "spanID": "d3428a203eaa3825"
+                        }
+                    ],
+                    "startTime": 1690499205860264,
+                    "duration": 1886,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p3",
+                    "warnings": null
+                },
+                {
+                    "traceID": "37b7ddb5795c7aad",
+                    "spanID": "412992429a5a08b5",
+                    "flags": 1,
+                    "operationName": "RedisHashSet",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "37b7ddb5795c7aad",
+                            "spanID": "232fbec457161a3b"
+                        }
+                    ],
+                    "startTime": 1690499205863837,
+                    "duration": 934,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p3",
+                    "warnings": null
+                },
+                {
+                    "traceID": "37b7ddb5795c7aad",
+                    "spanID": "eca53cea910c9e20",
+                    "flags": 1,
+                    "operationName": "RedisHashSet",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "37b7ddb5795c7aad",
+                            "spanID": "8b4926ccfa094f2a"
+                        }
+                    ],
+                    "startTime": 1690499205861802,
+                    "duration": 1030,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p3",
+                    "warnings": null
+                },
+                {
+                    "traceID": "37b7ddb5795c7aad",
+                    "spanID": "8b4926ccfa094f2a",
+                    "flags": 1,
+                    "operationName": "UploadUrls",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "37b7ddb5795c7aad",
+                            "spanID": "2abaec0daed8b5c9"
+                        }
+                    ],
+                    "startTime": 1690499205861786,
+                    "duration": 1057,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p3",
+                    "warnings": null
+                },
+                {
+                    "traceID": "37b7ddb5795c7aad",
+                    "spanID": "232fbec457161a3b",
+                    "flags": 1,
+                    "operationName": "UploadUserMentions",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "37b7ddb5795c7aad",
+                            "spanID": "0f58ab689e628c59"
+                        }
+                    ],
+                    "startTime": 1690499205863827,
+                    "duration": 965,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p3",
+                    "warnings": null
+                },
+                {
+                    "traceID": "37b7ddb5795c7aad",
+                    "spanID": "4adce3db5202088e",
+                    "flags": 1,
+                    "operationName": "RedisHashSet",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "37b7ddb5795c7aad",
+                            "spanID": "c4c3607e7b4a039d"
+                        }
+                    ],
+                    "startTime": 1690499205864491,
+                    "duration": 7930,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p3",
+                    "warnings": null
+                },
+                {
+                    "traceID": "37b7ddb5795c7aad",
+                    "spanID": "c4c3607e7b4a039d",
+                    "flags": 1,
+                    "operationName": "UploadText",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "37b7ddb5795c7aad",
+                            "spanID": "006a9cf3957bd38e"
+                        }
+                    ],
+                    "startTime": 1690499205864447,
+                    "duration": 8020,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p3",
+                    "warnings": null
+                },
+                {
+                    "traceID": "37b7ddb5795c7aad",
+                    "spanID": "cdc6a87eccdac401",
+                    "flags": 1,
+                    "operationName": "RedisHashSet",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "37b7ddb5795c7aad",
+                            "spanID": "f29c6ac296b0d76c"
+                        }
+                    ],
+                    "startTime": 1690499205868699,
+                    "duration": 4476,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p3",
+                    "warnings": null
+                },
+                {
+                    "traceID": "37b7ddb5795c7aad",
+                    "spanID": "f29c6ac296b0d76c",
+                    "flags": 1,
+                    "operationName": "UploadMedia",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "37b7ddb5795c7aad",
+                            "spanID": "53a971a7365bf898"
+                        }
+                    ],
+                    "startTime": 1690499205868684,
+                    "duration": 16168,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p3",
+                    "warnings": null
+                },
+                {
+                    "traceID": "37b7ddb5795c7aad",
+                    "spanID": "1f149244efe0fd1e",
+                    "flags": 1,
+                    "operationName": "RedisUpdate",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "37b7ddb5795c7aad",
+                            "spanID": "fb838935347912cb"
+                        }
+                    ],
+                    "startTime": 1690499205879360,
+                    "duration": 6963,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p4",
+                    "warnings": null
+                },
+                {
+                    "traceID": "37b7ddb5795c7aad",
+                    "spanID": "fb838935347912cb",
+                    "flags": 1,
+                    "operationName": "WriteUserTimeline",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "37b7ddb5795c7aad",
+                            "spanID": "f29c6ac296b0d76c"
+                        }
+                    ],
+                    "startTime": 1690499205877572,
+                    "duration": 8755,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p4",
+                    "warnings": null
+                },
+                {
+                    "traceID": "37b7ddb5795c7aad",
+                    "spanID": "7b1a938db4fedc8e",
+                    "flags": 1,
+                    "operationName": "MongoInsert",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "37b7ddb5795c7aad",
+                            "spanID": "fb838935347912cb"
+                        }
+                    ],
+                    "startTime": 1690499205877613,
+                    "duration": 1715,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p4",
+                    "warnings": null
+                },
+                {
+                    "traceID": "37b7ddb5795c7aad",
+                    "spanID": "53a971a7365bf898",
+                    "flags": 1,
+                    "operationName": "UploadMedia",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "37b7ddb5795c7aad",
+                            "spanID": "f1d07b6b1b7d627b"
+                        }
+                    ],
+                    "startTime": 1690499205872310,
+                    "duration": 16945,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p5",
+                    "warnings": null
+                },
+                {
+                    "traceID": "37b7ddb5795c7aad",
+                    "spanID": "f8d2df8eba6a9a4d",
+                    "flags": 1,
+                    "operationName": "/wrk2-api/post/compose",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "37b7ddb5795c7aad",
+                            "spanID": "37b7ddb5795c7aad"
+                        }
+                    ],
+                    "startTime": 1690499205859032,
+                    "duration": 26964,
+                    "tags": [
+                        {
+                            "key": "component",
+                            "type": "string",
+                            "value": "nginx"
+                        },
+                        {
+                            "key": "nginx.worker_pid",
+                            "type": "string",
+                            "value": "9"
+                        },
+                        {
+                            "key": "peer.address",
+                            "type": "string",
+                            "value": "10.244.0.0:46931"
+                        },
+                        {
+                            "key": "http.method",
+                            "type": "string",
+                            "value": "POST"
+                        },
+                        {
+                            "key": "http.url",
+                            "type": "string",
+                            "value": "http://10.103.198.225:8080/wrk2-api/post/compose"
+                        },
+                        {
+                            "key": "http.host",
+                            "type": "string",
+                            "value": "10.103.198.225:8080"
+                        },
+                        {
+                            "key": "http.status_code",
+                            "type": "int64",
+                            "value": 200
+                        },
+                        {
+                            "key": "http.status_line",
+                            "type": "string",
+                            "value": ""
+                        },
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p1",
+                    "warnings": null
+                },
+                {
+                    "traceID": "37b7ddb5795c7aad",
+                    "spanID": "37b7ddb5795c7aad",
+                    "flags": 1,
+                    "operationName": "/wrk2-api/post/compose",
+                    "references": [],
+                    "startTime": 1690499205858000,
+                    "duration": 27996,
+                    "tags": [
+                        {
+                            "key": "sampler.type",
+                            "type": "string",
+                            "value": "const"
+                        },
+                        {
+                            "key": "sampler.param",
+                            "type": "bool",
+                            "value": true
+                        },
+                        {
+                            "key": "http.status_code",
+                            "type": "int64",
+                            "value": 200
+                        },
+                        {
+                            "key": "http.status_line",
+                            "type": "string",
+                            "value": ""
+                        },
+                        {
+                            "key": "component",
+                            "type": "string",
+                            "value": "nginx"
+                        },
+                        {
+                            "key": "nginx.worker_pid",
+                            "type": "string",
+                            "value": "9"
+                        },
+                        {
+                            "key": "peer.address",
+                            "type": "string",
+                            "value": "10.244.0.0:46931"
+                        },
+                        {
+                            "key": "http.method",
+                            "type": "string",
+                            "value": "POST"
+                        },
+                        {
+                            "key": "http.url",
+                            "type": "string",
+                            "value": "http://10.103.198.225:8080/wrk2-api/post/compose"
+                        },
+                        {
+                            "key": "http.host",
+                            "type": "string",
+                            "value": "10.103.198.225:8080"
+                        },
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p1",
+                    "warnings": null
+                },
+                {
+                    "traceID": "37b7ddb5795c7aad",
+                    "spanID": "a7fc46058d5723e0",
+                    "flags": 1,
+                    "operationName": "RedisUpdate",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "37b7ddb5795c7aad",
+                            "spanID": "74c04fc4ace4d417"
+                        }
+                    ],
+                    "startTime": 1690499205884532,
+                    "duration": 3007,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p6",
+                    "warnings": null
+                },
+                {
+                    "traceID": "37b7ddb5795c7aad",
+                    "spanID": "74c04fc4ace4d417",
+                    "flags": 1,
+                    "operationName": "FanoutHomeTimelines",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "37b7ddb5795c7aad",
+                            "spanID": "f29c6ac296b0d76c"
+                        }
+                    ],
+                    "startTime": 1690499205880505,
+                    "duration": 7071,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p6",
+                    "warnings": null
+                },
+                {
+                    "traceID": "37b7ddb5795c7aad",
+                    "spanID": "f793902e24ae8a56",
+                    "flags": 1,
+                    "operationName": "RedisGet",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "37b7ddb5795c7aad",
+                            "spanID": "aa62f619edd65317"
+                        }
+                    ],
+                    "startTime": 1690499205878864,
+                    "duration": 3161,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p7",
+                    "warnings": null
+                },
+                {
+                    "traceID": "37b7ddb5795c7aad",
+                    "spanID": "aa62f619edd65317",
+                    "flags": 1,
+                    "operationName": "GetFollowers",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "37b7ddb5795c7aad",
+                            "spanID": "74c04fc4ace4d417"
+                        }
+                    ],
+                    "startTime": 1690499205878857,
+                    "duration": 3187,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p7",
+                    "warnings": null
+                },
+                {
+                    "traceID": "37b7ddb5795c7aad",
+                    "spanID": "d3428a203eaa3825",
+                    "flags": 1,
+                    "operationName": "UploadUniqueId",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "37b7ddb5795c7aad",
+                            "spanID": "f1d07b6b1b7d627b"
+                        }
+                    ],
+                    "startTime": 1690499205859699,
+                    "duration": 2929,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p8",
+                    "warnings": null
+                },
+                {
+                    "traceID": "37b7ddb5795c7aad",
+                    "spanID": "006a9cf3957bd38e",
+                    "flags": 1,
+                    "operationName": "UploadText",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "37b7ddb5795c7aad",
+                            "spanID": "f1d07b6b1b7d627b"
+                        }
+                    ],
+                    "startTime": 1690499205859684,
+                    "duration": 13151,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p9",
+                    "warnings": null
+                },
+                {
+                    "traceID": "37b7ddb5795c7aad",
+                    "spanID": "0f58ab689e628c59",
+                    "flags": 1,
+                    "operationName": "UploadUserMentions",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "37b7ddb5795c7aad",
+                            "spanID": "006a9cf3957bd38e"
+                        }
+                    ],
+                    "startTime": 1690499205859355,
+                    "duration": 3910,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p10",
+                    "warnings": null
+                },
+                {
+                    "traceID": "37b7ddb5795c7aad",
+                    "spanID": "2abaec0daed8b5c9",
+                    "flags": 1,
+                    "operationName": "UploadUrls",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "37b7ddb5795c7aad",
+                            "spanID": "006a9cf3957bd38e"
+                        }
+                    ],
+                    "startTime": 1690499205859341,
+                    "duration": 2175,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p11",
+                    "warnings": null
+                },
+                {
+                    "traceID": "37b7ddb5795c7aad",
+                    "spanID": "5000fd6885703109",
+                    "flags": 1,
+                    "operationName": "UploadUserWithUserId",
+                    "references": [
+                        {
+                            "refType": "CHILD_OF",
+                            "traceID": "37b7ddb5795c7aad",
+                            "spanID": "f1d07b6b1b7d627b"
+                        }
+                    ],
+                    "startTime": 1690499205862494,
+                    "duration": 4499,
+                    "tags": [
+                        {
+                            "key": "internal.span.format",
+                            "type": "string",
+                            "value": "proto"
+                        }
+                    ],
+                    "logs": [],
+                    "processID": "p12",
+                    "warnings": null
+                }
+            ],
+            "processes": {
+                "p1": {
+                    "serviceName": "nginx-web-server",
+                    "tags": [
+                        {
+                            "key": "hostname",
+                            "type": "string",
+                            "value": "nginx-thrift-bd7dc9fb9-8xqqz"
+                        },
+                        {
+                            "key": "ip",
+                            "type": "string",
+                            "value": "127.0.0.1"
+                        },
+                        {
+                            "key": "jaeger.version",
+                            "type": "string",
+                            "value": "C++-0.4.2"
+                        }
+                    ]
+                },
+                "p10": {
+                    "serviceName": "user-mention-service",
+                    "tags": [
+                        {
+                            "key": "hostname",
+                            "type": "string",
+                            "value": "user-mention-service-bf449f547-2t8fg"
+                        },
+                        {
+                            "key": "ip",
+                            "type": "string",
+                            "value": "127.0.0.1"
+                        },
+                        {
+                            "key": "jaeger.version",
+                            "type": "string",
+                            "value": "C++-0.4.2"
+                        }
+                    ]
+                },
+                "p11": {
+                    "serviceName": "url-shorten-service",
+                    "tags": [
+                        {
+                            "key": "hostname",
+                            "type": "string",
+                            "value": "url-shorten-service-6bd8d57845-vn7wr"
+                        },
+                        {
+                            "key": "ip",
+                            "type": "string",
+                            "value": "127.0.0.1"
+                        },
+                        {
+                            "key": "jaeger.version",
+                            "type": "string",
+                            "value": "C++-0.4.2"
+                        }
+                    ]
+                },
+                "p12": {
+                    "serviceName": "user-service",
+                    "tags": [
+                        {
+                            "key": "hostname",
+                            "type": "string",
+                            "value": "user-service-78446697c7-mzdrj"
+                        },
+                        {
+                            "key": "ip",
+                            "type": "string",
+                            "value": "127.0.0.1"
+                        },
+                        {
+                            "key": "jaeger.version",
+                            "type": "string",
+                            "value": "C++-0.4.2"
+                        }
+                    ]
+                },
+                "p2": {
+                    "serviceName": "post-storage-service",
+                    "tags": [
+                        {
+                            "key": "hostname",
+                            "type": "string",
+                            "value": "post-storage-service-6769bccc79-8bhj4"
+                        },
+                        {
+                            "key": "ip",
+                            "type": "string",
+                            "value": "127.0.0.1"
+                        },
+                        {
+                            "key": "jaeger.version",
+                            "type": "string",
+                            "value": "C++-0.4.2"
+                        }
+                    ]
+                },
+                "p3": {
+                    "serviceName": "compose-post-service",
+                    "tags": [
+                        {
+                            "key": "hostname",
+                            "type": "string",
+                            "value": "compose-post-service-d87dcb7b9-7hvwq"
+                        },
+                        {
+                            "key": "ip",
+                            "type": "string",
+                            "value": "127.0.0.1"
+                        },
+                        {
+                            "key": "jaeger.version",
+                            "type": "string",
+                            "value": "C++-0.4.2"
+                        }
+                    ]
+                },
+                "p4": {
+                    "serviceName": "user-timeline-service",
+                    "tags": [
+                        {
+                            "key": "hostname",
+                            "type": "string",
+                            "value": "user-timeline-service-7fdf58bf56-khzz8"
+                        },
+                        {
+                            "key": "ip",
+                            "type": "string",
+                            "value": "127.0.0.1"
+                        },
+                        {
+                            "key": "jaeger.version",
+                            "type": "string",
+                            "value": "C++-0.4.2"
+                        }
+                    ]
+                },
+                "p5": {
+                    "serviceName": "media-service",
+                    "tags": [
+                        {
+                            "key": "hostname",
+                            "type": "string",
+                            "value": "media-service-c65856cdc-mrnmd"
+                        },
+                        {
+                            "key": "ip",
+                            "type": "string",
+                            "value": "127.0.0.1"
+                        },
+                        {
+                            "key": "jaeger.version",
+                            "type": "string",
+                            "value": "C++-0.4.2"
+                        }
+                    ]
+                },
+                "p6": {
+                    "serviceName": "write-home-timeline-service",
+                    "tags": [
+                        {
+                            "key": "hostname",
+                            "type": "string",
+                            "value": "write-home-timeline-service-974f898bf-s58sx"
+                        },
+                        {
+                            "key": "ip",
+                            "type": "string",
+                            "value": "127.0.0.1"
+                        },
+                        {
+                            "key": "jaeger.version",
+                            "type": "string",
+                            "value": "C++-0.4.2"
+                        }
+                    ]
+                },
+                "p7": {
+                    "serviceName": "social-graph-service",
+                    "tags": [
+                        {
+                            "key": "hostname",
+                            "type": "string",
+                            "value": "social-graph-service-5f96987654-8c9zs"
+                        },
+                        {
+                            "key": "ip",
+                            "type": "string",
+                            "value": "127.0.0.1"
+                        },
+                        {
+                            "key": "jaeger.version",
+                            "type": "string",
+                            "value": "C++-0.4.2"
+                        }
+                    ]
+                },
+                "p8": {
+                    "serviceName": "unique-id-service",
+                    "tags": [
+                        {
+                            "key": "hostname",
+                            "type": "string",
+                            "value": "unique-id-service-7d9c47c984-chpnp"
+                        },
+                        {
+                            "key": "ip",
+                            "type": "string",
+                            "value": "127.0.0.1"
+                        },
+                        {
+                            "key": "jaeger.version",
+                            "type": "string",
+                            "value": "C++-0.4.2"
+                        }
+                    ]
+                },
+                "p9": {
+                    "serviceName": "text-service",
+                    "tags": [
+                        {
+                            "key": "hostname",
+                            "type": "string",
+                            "value": "text-service-6b5f466f59-7c46x"
+                        },
+                        {
+                            "key": "ip",
+                            "type": "string",
+                            "value": "127.0.0.1"
+                        },
+                        {
+                            "key": "jaeger.version",
+                            "type": "string",
+                            "value": "C++-0.4.2"
+                        }
+                    ]
+                }
+            },
+            "warnings": null
+        }
+    ]
+}

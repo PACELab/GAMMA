@@ -6,6 +6,11 @@ text-service is the last service to finish so does the remaining tasks
 compose_valid_json.2
 unique_upload_id services is the last service
 
+compose_valid_json.3
+media_service services is the last service
+
+compose_valid_json.4
+user-service services is the last service
 
 compose_valid_json.5
 text-service is the last service to finish. Also, social-graph-service GetFollowers leads to mongo access as redis get fails! (asynchronous and caching. wicked!)
