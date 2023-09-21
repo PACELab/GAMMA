@@ -1,0 +1,11 @@
+nginx-web-server_/wrk2-api/user-timeline/read, nginx-thrift
+nginx-web-server_/wrk2-api/user-timeline/read,  nginx-thrift
+nginx-web-server_ReadUserTimeline, nginx-thrift
+user-timeline-service_ReadUserTimeline, user-timeline-service
+post-storage-service_ReadPosts, post-storage-service
+user-timeline-service_MongoFindUserTimeline, user-timeline-mongodb
+user-timeline-service_RedisFind, user-timeline-redis
+user-timeline-service_RedisUpdate, user-timeline-redis
+post-storage-service_MemcachedMget, post-storage-memcached
+post-storage-service_MmcSetPost, post-storage-memcached
+post-storage-service_MongoFindPosts, post-storage-mongodb

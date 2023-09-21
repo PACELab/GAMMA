@@ -1,0 +1,9 @@
+nginx-web-server_/wrk2-api/home-timeline/read, nginx-thrift
+nginx-web-server_/wrk2-api/home-timeline/read, nginx-thrift
+nginx-web-server_ReadHomeTimeline, nginx-thrift
+home-timeline-service_ReadHomeTimeline, home-timeline-service
+home-timeline-service_RedisFind, home-timeline-redis
+post-storage-service_ReadPosts, post-storage-service
+post-storage-service_MemcachedMget, post-storage-memcached
+post-storage-service_MmcSetPost, post-storage-memcached
+post-storage-service_MongoFindPosts, post-storage-mongodb
