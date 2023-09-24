@@ -8,6 +8,14 @@ import pandas as pd
 import pathlib
 import csv
 import logging
+import re
+
+logging.basicConfig(
+    #filename='HISTORYlistener.log',
+    level=logging.DEBUG,
+    format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+)
 
 def create_folder_p(folder):
     """
@@ -139,17 +147,21 @@ def addLatencyOfService(trace, span):
 def get_valid_call_graphs(app, request_type):
     valid_trace_folder = f"/home/ubuntu/firm_compass/configs/{app}"
     call_graphs = {}
-    counter = 1
     for trace_file in os.listdir(valid_trace_folder):
         if request_type in trace_file:
             with open(os.path.join(valid_trace_folder, trace_file)) as f:
                 trace = json.load(f)['data'][0]
+                m = re.search(r'(\d+)', trace_file)
+                if m:
+                    counter = m.group(1)
+                else:
+                    logging.error(f"Valid graph file '{trace_file}' format doesn't follow convention or the file doesn't exist.")
+                    raise
                 call_graphs[counter] = buildTree(trace)
-                counter += 1
     
     return call_graphs
 
-def get_matching_graph(current_graph, valid_graphs):
+def get_matching_graph(current_graph, valid_graphs, req_type):
     def traverse_graphs(current_root, valid_root):
         q1, q2 = deque([current_root]), deque([valid_root])
         
@@ -164,8 +176,31 @@ def get_matching_graph(current_graph, valid_graphs):
                 q2.append(child)
         return (not q1) and (not q2) # queues of matching graphs will be empty
     
+    def compare_children(current_root, valid_root):
+        """
+        Due to microsecond delay, some requests in read-hometimeline might have 
+        different order but belong to the same type. So just compare the children
+        """
+        q1, q2 = deque([current_root]), deque([valid_root])
+        
+        while q1 and q2:
+            current = q1.popleft()
+            valid = q2.popleft()
+            # compare sorted <service_name>_<operation_name> to ensure children are the same.
+            if sorted([f"{c.service_name}_{c.operation_name}" for c in current.children]) != sorted([f"{v.service_name}_{v.operation_name}" for v in valid.children]):
+                return False
+            for child in current.children:
+                q1.append(child)
+            for child in valid.children:
+                q2.append(child)
+        return (not q1) and (not q2) 
+
+    if req_type == "home":
+        validation_method = compare_children
+    else:
+        validation_method = traverse_graphs
     for key in valid_graphs:
-        if traverse_graphs(current_graph, valid_graphs[key]):
+        if validation_method(current_graph, valid_graphs[key]):
             return key
     
     return -1
@@ -229,7 +264,7 @@ def getReqTypeStats(output_folder, reqType, app, readFromFolder, interference_pe
     os.system("mkdir -p %s" % output_folder)
     with open(traceFile, "r") as storeDataFile:
         traceData = json.load(storeDataFile)['data']
-    print("Length of trace data ", len(traceData))
+    logging.info(f"Length of trace data of request type {reqType}: {len(traceData)}")
 
     valid_call_graphs = get_valid_call_graphs("SN", reqType )
 
@@ -238,26 +273,89 @@ def getReqTypeStats(output_folder, reqType, app, readFromFolder, interference_pe
     for trace in traceData:
         current_graph = buildTree(trace)
         if current_graph is not None:
-            key = get_matching_graph(current_graph, valid_call_graphs)
+            key = get_matching_graph(current_graph, valid_call_graphs, reqType)
             if key != -1:
                 traces_groups[key].append(trace)
 
-    print(len(traces_groups[1]))
+    for key in traces_groups:
+        logging.info(f"The number of processed traces of type {reqType}_valid_{key}.json are {len(traces_groups[key])}")
 
     for key in valid_call_graphs:
         graph_paths, ids = get_paths_and_ids(valid_call_graphs[key])
-        print(graph_paths)
-        write_dictionary(os.path.join(output_folder, f"ids_{key}"), ids)
-        write_content(os.path.join(output_folder, f"graph_paths_{key}"), "\n".join(graph_paths))
+        logging.debug(f"The path of {reqType}_valid_{key}.json is \n{graph_paths}\n")
+        write_dictionary(os.path.join(output_folder, f"{reqType}_ids_{key}"), ids)
+        write_content(os.path.join(output_folder, f"{reqType}_graph_paths_{key}"), "\n".join(graph_paths))
         service_time_data = defaultdict(list)
         rpc_start_time_data = defaultdict(list)
 
         for trace in traces_groups[key]:
             append_trace_data(trace, service_time_data, rpc_start_time_data)
         #levelOrderTraverseTree(valid_call_graphs[key])
-        dict_to_csv(os.path.join(output_folder, f"service_time_{key}.csv"), service_time_data)
-        dict_to_csv(os.path.join(output_folder, f"rps_start_time_{key}.csv"), rpc_start_time_data)
+        dict_to_csv(os.path.join(output_folder, f"{reqType}_service_time_{key}.csv"), service_time_data)
+        dict_to_csv(os.path.join(output_folder, f"{reqType}_rps_start_time_{key}.csv"), rpc_start_time_data)
 
+def is_diff_type(trace, graph):
+    if len(graph.children) == 0:
+        return
+    graph = graph.children[0]
+    if len(graph.children) == 0:
+        return
+    graph = graph.children[0]
+    #graph = graph.children[0]
+    for c in graph.children:
+        for g in c.children:
+            if g.service_name == "compose-post-service" and len(g.children) > 1:
+                print("Mommy ",c.service_name)
+                for i in g.children:
+                    print(i.service_name, i.operation_name)
+                graph_paths, ids = get_paths_and_ids(graph)
+                logging.debug(f"The path is \n{graph_paths}\n")
+                print(max(ids.keys()))
+                if max(ids.keys()) <27:
+                    continue
+                logging.debug(f"The ids is \n{ids}\n")
+                output = {}
+                output['data'] = [trace]
+                with open("compose_valid_4.json", "w") as f:
+                    json.dump(output, f, indent=4)
+                sys.exit()
+
+
+def get_compose_diff_types(applnName, readFromFolder, interference_percentage):
+    reqType = "compose"
+    output_folder = "./playground"
+    traceFile = str(readFromFolder)+"/"+str(reqType)+"_traces.json"
+    os.system("mkdir -p %s" % output_folder)
+    with open(traceFile, "r") as storeDataFile:
+        traceData = json.load(storeDataFile)['data']
+    logging.info(f"Length of trace data of request type {reqType}: {len(traceData)}")
+
+    valid_call_graphs = get_valid_call_graphs("SN", reqType )
+    traces_groups = defaultdict(list)
+
+    for trace in traceData:
+        current_graph = buildTree(trace)
+        if current_graph is not None:
+            key = get_matching_graph(current_graph, valid_call_graphs, reqType)
+            if key == -1:
+                is_diff_type(trace, current_graph)
+            
+
+    # for key in traces_groups:
+    #     logging.info(f"The number of processed traces of type {reqType}_valid_{key}.json are {len(traces_groups[key])}")
+
+    # for key in valid_call_graphs:
+    #     graph_paths, ids = get_paths_and_ids(valid_call_graphs[key])
+    #     logging.debug(f"The path of {reqType}_valid_{key}.json is \n{graph_paths}\n")
+    #     write_dictionary(os.path.join(output_folder, f"{reqType}_ids_{key}"), ids)
+    #     write_content(os.path.join(output_folder, f"{reqType}_graph_paths_{key}"), "\n".join(graph_paths))
+    #     service_time_data = defaultdict(list)
+    #     rpc_start_time_data = defaultdict(list)
+
+    #     for trace in traces_groups[key]:
+    #         append_trace_data(trace, service_time_data, rpc_start_time_data)
+    #     #levelOrderTraverseTree(valid_call_graphs[key])
+    #     dict_to_csv(os.path.join(output_folder, f"{reqType}_service_time_{key}.csv"), service_time_data)
 
 def main(applnName, readFromFolder, interference_percentage):
     opFolder = os.path.join(readFromFolder, "processed_traces")
@@ -269,12 +367,15 @@ def main(applnName, readFromFolder, interference_percentage):
 
     if(applnName == "SN"):
         getReqTypeStats(opFolder, 'compose', applnName, readFromFolder, interference_percentage)
-        #getReqTypeStats(opFolder, 'home', applnName, readFromFolder, interference_percentage)
-        #getReqTypeStats(opFolder, 'user', applnName, readFromFolder, interference_percentage)
+        getReqTypeStats(opFolder, 'home', applnName, readFromFolder, interference_percentage)
+        getReqTypeStats(opFolder, 'user', applnName, readFromFolder, interference_percentage)
 
 
 if __name__ == "__main__":
     applnName = sys.argv[1]
     readFromFolder = sys.argv[2]
     interference_percentage = sys.argv[2]
+    
+    # for getting call graphs
+    # get_compose_diff_types(applnName, readFromFolder, interference_percentage)
     main(applnName, readFromFolder, interference_percentage)
