@@ -167,7 +167,7 @@ def wait_for_state(namespace, state, sleep=30, max_wait=120):
         os.system(f"sleep {sleep}")
         wait += sleep
     else:
-        logging.error("App didn't reach the expected state: {state}")
+        logging.error(f"App didn't reach the expected state: {state}")
         raise
 
 def is_deployment_successful(namespace = "social-network", failure_okay = ["write-home-timeline-service"] ):
@@ -186,11 +186,13 @@ def is_deployment_successful(namespace = "social-network", failure_okay = ["writ
 
 def get_io_bottleneck_cmd(measure, duration):
     # Adds seek delay when accessing the disk.
-    command = f"stress-ng --hdd-seek {measure}ms --timeout {duration}s"
+    #command = f"stress-ng --hdd-seek {measure}ms - -timeout {duration}s"
+    command = f"stress-ng --hdd {measure} -t {duration}s"
     return command
 
 def get_network_bottleneck_cmd(measure, duration):
-    command = f"stress-ng --net-delay {measure}ms --timeout {duration}"
+    #command = f"stress-ng --net-delay {measure}ms --timeout {duration}"
+    command  = f"stress-ng --sock {measure} -t {duration}s"
     return command
 
 def get_memory_bottleneck_cmd(measure, duration):
@@ -383,7 +385,7 @@ def query_for_prom_metrics(metric, instance):
 
 
 def get_prometheus_node_metrics(node_list, node_exporter_namespace="monitoring"):
-
+    metrics = []
     monitoring_pod_list = get_pods("monitoring")
     for pod in monitoring_pod_list:
         name = pod.metadata.name
@@ -527,8 +529,9 @@ for rps in rps_list:
         end = int(time.time() * seconds_to_microseconds) # epoch time in microseconds
         logging.info(f"Stopping the warm-up workload at {end}")
 
-        logging.info("Creating bottlenecks")
-        threads = creating_bottlenecks(bottlenecked_nodes, interference_percentage, phases, experiment_folder)
+        if bottlenecked_nodes is not None:
+            logging.info("Creating bottlenecks")
+            threads = creating_bottlenecks(bottlenecked_nodes, interference_percentage, phases, experiment_folder)
 
         start = int(time.time() * seconds_to_microseconds) # epoch time in microseconds
         logging.info(f"Starting the workload at {start}")
