@@ -185,13 +185,24 @@ def is_deployment_successful(namespace = "social-network", failure_okay = ["writ
 
 
 def get_io_bottleneck_cmd(measure, duration):
-    # Adds seek delay when accessing the disk.
-    #command = f"stress-ng --hdd-seek {measure}ms - -timeout {duration}s"
-    command = f"stress-ng --hdd {measure} -t {duration}s"
+    """
+       -d N, --hdd N
+              start  N  workers  continually  writing,  reading and removing temporary files. The
+              default mode is to stress test sequential writes and reads.  With the  --aggressive
+              option  enabled  without  any --hdd-opts options the hdd stressor will work through
+              all the --hdd-opt options one by one to cover a range of I/O options.
+    """
+    command = f"stress-ng --aggressive --hdd {measure} -t {duration}s"
     return command
 
 def get_network_bottleneck_cmd(measure, duration):
     #command = f"stress-ng --net-delay {measure}ms --timeout {duration}"
+    """
+        -S N, --sock N
+              start  N  workers that perform various socket stress activity. This involves a pair
+              of  client/server  processes  performing  rapid  connect,  send  and  receives  and
+              disconnects on the local host.   
+    """
     command  = f"stress-ng --sock {measure} -t {duration}s"
     return command
 
@@ -219,7 +230,7 @@ def create_bottlenecks_remotely(bottleneck, destination, bottleneck_type):
     current_thread = threading.current_thread().name
     logging.debug(f"Thread {current_thread} running on {bottleneck.node}")
     try:
-        with open(os.path.join(destination, f"{bottleneck.node}_phases"), "w") as f:
+        with open(os.path.join(destination, f"{bottleneck_type}_{bottleneck.node}_phases"), "w") as f:
             for i in range(len(bottleneck.duration_list)):
                 if i%2 ==0:
                     logging.debug(f"{current_thread} sleeping for {bottleneck.duration_list[i]}")
@@ -236,13 +247,13 @@ def create_bottlenecks_remotely(bottleneck, destination, bottleneck_type):
                     except subprocess.TimeoutExpired:
                         logging.error(f"{current_thread} is stuck.")
                         p.kill()
-                    f.write(f"Bottleneck of type CPU with measure {bottleneck.measure_list[i//2]/100} ends at {time.time()}\n")
+                    f.write(f"Bottleneck of type {bottleneck_type} with measure {bottleneck.measure_list[i//2]/100} ends at {time.time()}\n")
         logging.debug(f"{current_thread} is terminating...")
     except Exception as e:
         logging.exception(f"{current_thread} Exception occurred in thread for {bottleneck.node}: {e}")
 
 
-def creating_bottlenecks(bottlenecked_nodes, interference_percentage, phases, experiment_folder, bottleneck_type="cpu"):
+def create_bottlenecks(bottlenecked_nodes, interference_percentage, phases, experiment_folder, bottleneck_type):
     threads = []
     for i, node in enumerate(bottlenecked_nodes):
         threads.append(threading.Thread(target=create_bottlenecks_remotely, args=(Bottlenecks(node,interference_percentage, phases), experiment_folder, bottleneck_type)))
@@ -491,7 +502,7 @@ wrk2_folder = "/home/ubuntu/firm_compass"
 experiments_root = "/mnt/experiments"
 rps_list = args.rps
 starting_sequence = args.starting_sequence
-n_sequences = 10
+n_sequences = 30
 worker_nodes = [f"userv{i}" for i in range(2,17)] # read from a config file
 logging.info(f"Worker nodes {worker_nodes}")
 experiment_duration = args.experiment_duration
@@ -499,10 +510,6 @@ warm_up_duration = args.warm_up_duration
 setup_duration = 600
 seconds_to_microseconds = 1000 * 1000 
 k8s_source = "/home/ubuntu/firm_compass/benchmarks/1-social-network/k8s-yaml-default"
-bottlenecked_nodes = args.bottlenecked_nodes
-interference_percentage = args.interference_percentage
-phases = args.phases
-threads = []
 placement_config_version = 1
 placement_config = f"/home/ubuntu/firm_compass/benchmarks/1-social-network/placement/{placement_config_version}.csv"
 
@@ -529,9 +536,19 @@ for rps in rps_list:
         end = int(time.time() * seconds_to_microseconds) # epoch time in microseconds
         logging.info(f"Stopping the warm-up workload at {end}")
 
-        if bottlenecked_nodes is not None:
+        threads = []
+        if args.cpu_bottlenecked_nodes is not None:
             logging.info("Creating bottlenecks")
-            threads = creating_bottlenecks(bottlenecked_nodes, interference_percentage, phases, experiment_folder)
+            threads += create_bottlenecks(args.cpu_bottlenecked_nodes, args.cpu_interference_percentage, args.cpu_phases, experiment_folder, "cpu")
+        if args.mem_bottlenecked_nodes is not None:
+            logging.info("Creating bottlenecks")
+            threads += create_bottlenecks(args.mem_bottlenecked_nodes, args.mem_interference_percentage, args.mem_phases, experiment_folder, "memory")
+        if args.net_bottlenecked_nodes is not None:
+            logging.info("Creating bottlenecks")
+            threads += create_bottlenecks(args.net_bottlenecked_nodes, args.net_interference_percentage, args.net_phases, experiment_folder, "memory")
+        if args.io_bottlenecked_nodes is not None:
+            logging.info("Creating bottlenecks")
+            threads += create_bottlenecks(args.io_bottlenecked_nodes, args.io_interference_percentage, args.io_phases, experiment_folder, "memory")
 
         start = int(time.time() * seconds_to_microseconds) # epoch time in microseconds
         logging.info(f"Starting the workload at {start}")
@@ -539,8 +556,9 @@ for rps in rps_list:
         end = int(time.time() * seconds_to_microseconds) # epoch time in microseconds
         logging.info(f"Stopping the workload at {end}")
         
-        get_logs_and_metrics(namespace, experiment_folder)
-        if get_jaeger_traces(request_types, end, experiment_folder):
+        if not args.skip_log_metric_collection:
+            get_logs_and_metrics(namespace, experiment_folder)
+        if not args.skip_trace_collection and get_jaeger_traces(request_types, end, experiment_folder):
             create_dataset.main(app, experiment_folder, 0)
         for thread in threads:
             logging.debug(f"is thread alive : {thread.is_alive()}")
