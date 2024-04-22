@@ -56,10 +56,10 @@ spec:
       restartPolicy: Always
       volumes:
       - hostPath:
-          path: /home/ubuntu/firm_compass/benchmarks/1-social-network/media-frontend/lua-scripts-k8s
+          path: /home/azureuser/firm_compass/benchmarks/1-social-network/media-frontend/lua-scripts-k8s
           type: Directory
         name: lua-scripts
       - hostPath:
-          path: /home/ubuntu/firm_compass/benchmarks/1-social-network/media-frontend/conf/nginx-k8s.conf
+          path: /home/azureuser/firm_compass/benchmarks/1-social-network/media-frontend/conf/nginx-k8s.conf
           type: File
         name: nginx-conf

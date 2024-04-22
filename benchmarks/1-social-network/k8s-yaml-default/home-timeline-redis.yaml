@@ -59,6 +59,6 @@ spec:
       restartPolicy: Always
       volumes:
       - hostPath:
-          path: /home/ubuntu/firm_compass/benchmarks/1-social-network/tmp/home-timeline_redis
+          path: /home/azureuser/firm_compass/benchmarks/1-social-network/tmp/home-timeline_redis
           type: Directory
         name: data

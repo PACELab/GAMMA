@@ -59,10 +59,10 @@ spec:
       restartPolicy: Always
       volumes:
       - hostPath:
-          path: /home/ubuntu/firm_compass/benchmarks/1-social-network/tmp/social-graph_mongoconfigdb
+          path: /home/azureuser/firm_compass/benchmarks/1-social-network/tmp/social-graph_mongoconfigdb
           type: Directory
         name: configdb
       - hostPath:
-          path: /home/ubuntu/firm_compass/benchmarks/1-social-network/tmp/social-graph_mongodb
+          path: /home/azureuser/firm_compass/benchmarks/1-social-network/tmp/social-graph_mongodb
           type: Directory
         name: db
