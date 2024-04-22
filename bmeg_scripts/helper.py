@@ -29,7 +29,7 @@ def scp_helper(
     os.system(command)
 
 
-def ssh_handler(user, host, use_identity_file=True, key="/home/ubuntu/compass.key", cmd_on_remote=""):
+def ssh_handler(user, host, use_identity_file=True, key="/home/azureuser/gagan-aiopsbench_key.pem", cmd_on_remote=""):
     ssh_command = "ssh "
 
     if use_identity_file:

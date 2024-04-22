@@ -145,7 +145,7 @@ def addLatencyOfService(trace, span):
 
 
 def get_valid_call_graphs(app, request_type):
-    valid_trace_folder = f"/home/ubuntu/firm_compass/configs/{app}"
+    valid_trace_folder = f"/home/azureuser/firm_compass/configs/{app}"
     call_graphs = {}
     for trace_file in os.listdir(valid_trace_folder):
         if request_type in trace_file:

@@ -74,16 +74,21 @@ def get_service_cluster_ip(service, namespace):
     p = subprocess.run(
         f"kubectl get svc {service} -n {namespace} -ojsonpath='{{.spec.clusterIP}}'", stdout=subprocess.PIPE, shell=True
     )
-    cluster_ip = p.stdout.decode("ascii").strip()
-    return cluster_ip
+    return p.stdout.decode("ascii").strip()
+
+def get_service_node_port(service, namespace):
+    p = subprocess.run(
+        f"kubectl get svc {service} -n {namespace} -ojsonpath='{{.spec.ports[0].nodePort}}'", stdout=subprocess.PIPE, shell=True
+    )
+    return p.stdout.decode("ascii").strip()
 
 
 def clean_up_workers(worker_nodes):
     for node in worker_nodes:
         logging.info(f"Cleaning worker {node}.")
-        # os.system(f'ssh -i /home/ubuntu/compass.key ubuntu@{node} "sudo rm -rf /home/ubuntu/firm/benchmarks/1-social-network/tmp/*"')
+        # os.system(f'ssh -i /home/azureuser/gagan-aiopsbench_key.pem azureuser@{node} "sudo rm -rf /home/azureuser/firm/benchmarks/1-social-network/tmp/*"')
         subprocess.run(
-            f'ssh -i /home/ubuntu/compass.key ubuntu@{node} "sudo rm -rf /home/ubuntu/firm_compass/benchmarks/1-social-network/tmp/*"', shell=True, check=True
+            f'ssh -i /home/azureuser/gagan-aiopsbench_key.pem azureuser@{node} "sudo rm -rf /home/azureuser/firm_compass/benchmarks/1-social-network/tmp/*"', shell=True, check=True
         )
 
 def clean_sn_app(k8s_yaml_folder):
@@ -94,13 +99,13 @@ def clean_sn_app(k8s_yaml_folder):
 def set_up_workers(worker_nodes):
     for node in worker_nodes:
         # tmp in cleaned up but just in case.
-        # os.system(f'ssh -i /home/ubuntu/compass.key ubuntu@{node} "sudo rm -rf /home/ubuntu/firm/benchmarks/1-social-network/tmp/*"')
-        # os.system(f'ssh -i /home/ubuntu/compass.key ubuntu@{node} "cp -r /home/ubuntu/firm/benchmarks/1-social-network/volumes/* /home/ubuntu/firm/benchmarks/1-social-network/tmp/"')
+        # os.system(f'ssh -i /home/azureuser/gagan-aiopsbench_key.pem azureuser@{node} "sudo rm -rf /home/azureuser/firm/benchmarks/1-social-network/tmp/*"')
+        # os.system(f'ssh -i /home/azureuser/gagan-aiopsbench_key.pem azureuser@{node} "cp -r /home/azureuser/firm/benchmarks/1-social-network/volumes/* /home/azureuser/firm/benchmarks/1-social-network/tmp/"')
         logging.info(f"Setting up worker node {node}")
         subprocess.run(
-            f'ssh  -i /home/ubuntu/compass.key ubuntu@{node} "sudo rm -rf /home/ubuntu/firm_compass/benchmarks/1-social-network/tmp/*"', shell=True, check=True)
+            f'ssh  -i /home/azureuser/gagan-aiopsbench_key.pem azureuser@{node} "sudo rm -rf /home/azureuser/firm_compass/benchmarks/1-social-network/tmp/*"', shell=True, check=True)
         subprocess.run(
-            f'ssh  -i /home/ubuntu/compass.key ubuntu@{node} "cp -r /home/ubuntu/firm_compass/benchmarks/1-social-network/volumes/* /home/ubuntu/firm_compass/benchmarks/1-social-network/tmp/"',  shell=True, check=True)
+            f'ssh  -i /home/azureuser/gagan-aiopsbench_key.pem azureuser@{node} "cp -r /home/azureuser/firm_compass/benchmarks/1-social-network/volumes/* /home/azureuser/firm_compass/benchmarks/1-social-network/tmp/"',  shell=True, check=True)
 
 def set_up_sn(k8s_folder):
     logging.info("Deploying the application.")
@@ -123,18 +128,20 @@ def get_request_composition(app, rps):
     return int(rps * 0.1), int(rps * 0.6), int(rps * 0.3)
 
 def static_workload(experiment_duration, destination_folder, frontend_cluster_ip, rps, port = "8080"):
-        compose_rps, home_rps, user_rps = get_request_composition(app, rps)
-        threads, connections = get_wrk2_params("", app)
+    port = get_service_node_port("nginx-thrift", "social-network")
+    compose_rps, home_rps, user_rps = get_request_composition(app, rps)
+    threads, connections = get_wrk2_params("", app)
 
-        subprocess.run(
-            f"{wrk2_folder}/wrk2/wrk -D exp -t {threads}  -c {connections} -d {experiment_duration} -P {destination_folder}/compose_latencies.txt -L -s {wrk2_folder}/wrk2/scripts/social-network/compose-post.lua http://{frontend_cluster_ip}:{port}/wrk2-api/post/compose -R {compose_rps} > {destination_folder}/compose.log &", shell=True, check = True)
-        subprocess.run(
-            f"{wrk2_folder}/wrk2/wrk -D exp -t {threads}  -c {connections} -d {experiment_duration} -P {destination_folder}/home_latencies.txt -L -s {wrk2_folder}/wrk2/scripts/social-network/read-home-timeline.lua http://{frontend_cluster_ip}:{port}/wrk2-api/home-timeline/read -R {home_rps} > {destination_folder}/home.log &", shell=True, check = True)
-        subprocess.run(
-            f"{wrk2_folder}/wrk2/wrk -D exp -t {threads}  -c {connections} -d {experiment_duration} -P {destination_folder}/user_latencies.txt -L -s {wrk2_folder}/wrk2/scripts/social-network/read-user-timeline.lua http://{frontend_cluster_ip}:{port}/wrk2-api/user-timeline/read -R {user_rps} > {destination_folder}/user.log &", shell=True, check = True)
-        os.system(f"sleep {experiment_duration}")
+    subprocess.run(
+        f"{wrk2_folder}/wrk2/wrk -D exp -t {threads}  -c {connections} -d {experiment_duration} -P {destination_folder}/compose_latencies.txt -L -s {wrk2_folder}/wrk2/scripts/social-network/compose-post.lua http://{frontend_cluster_ip}:{port}/wrk2-api/post/compose -R {compose_rps} > {destination_folder}/compose.log &", shell=True, check = True)
+    subprocess.run(
+        f"{wrk2_folder}/wrk2/wrk -D exp -t {threads}  -c {connections} -d {experiment_duration} -P {destination_folder}/home_latencies.txt -L -s {wrk2_folder}/wrk2/scripts/social-network/read-home-timeline.lua http://{frontend_cluster_ip}:{port}/wrk2-api/home-timeline/read -R {home_rps} > {destination_folder}/home.log &", shell=True, check = True)
+    subprocess.run(
+        f"{wrk2_folder}/wrk2/wrk -D exp -t {threads}  -c {connections} -d {experiment_duration} -P {destination_folder}/user_latencies.txt -L -s {wrk2_folder}/wrk2/scripts/social-network/read-user-timeline.lua http://{frontend_cluster_ip}:{port}/wrk2-api/user-timeline/read -R {user_rps} > {destination_folder}/user.log &", shell=True, check = True)
+    os.system(f"sleep {experiment_duration}")
 
 def warm_up_app(warm_up_duration, destination_folder, frontend_cluster_ip, rps,  port = "8080"):
+    port = get_service_node_port("nginx-thrift", "social-network")
     compose_rps, home_rps, user_rps = get_request_composition(app, rps)
     threads, connections = get_wrk2_params("", app)
     subprocess.run(f"{wrk2_folder}/wrk2/wrk -D exp -t {threads} -c {connections} -d {warm_up_duration} -P {destination_folder}/compose_latencies.warm_up -L -s {wrk2_folder}/wrk2/scripts/social-network/compose-post.lua http://{frontend_cluster_ip}:{port}/wrk2-api/post/compose -R {compose_rps} > {destination_folder}/compose.warm_up &", shell=True, check = True)
@@ -214,7 +221,7 @@ def get_memory_bottleneck_cmd(measure, duration):
     return command
 
 def get_cpu_bottleneck_cmd(measure, duration):
-    command = f"python3 /home/ubuntu/firm_compass/tools/CPULoadGenerator/CPULoadGenerator.py -l {measure} -d {duration} -c 0 -c 1 -c 2 -c 3"
+    command = f"python3 /home/azureuser/firm_compass/tools/CPULoadGenerator/CPULoadGenerator.py -l {measure} -d {duration} -c 0 -c 1 -c 2 -c 3"
     return command
 
 def create_bottlenecks_remotely(bottleneck, destination, bottleneck_type):
@@ -240,7 +247,7 @@ def create_bottlenecks_remotely(bottleneck, destination, bottleneck_type):
                     f.write(f"Bottleneck of type {bottleneck_type} with measure {bottleneck.measure_list[i//2]/100} starts at {time.time()}\n")
                     # load percentage should be [0.1]
                     command = get_cmd_function(bottleneck.measure_list[i//2]/100, bottleneck.duration_list[i])
-                    p = subprocess.Popen(f'ssh -i /home/ubuntu/compass.key ubuntu@{bottleneck.node} "{command}"', shell=True)
+                    p = subprocess.Popen(f'ssh -i /home/azureuser/gagan-aiopsbench_key.pem azureuser@{bottleneck.node} "{command}"', shell=True)
                     try:
                         # the CPU load generator doesn't terminate.
                         _, _ = p.communicate(timeout=bottleneck.duration_list[i] + grace_period)
@@ -272,6 +279,8 @@ def deploy_application(destination_folder, placement_config,  worker_nodes, k8s_
     clean_sn_app(k8s_source)
     clean_up_workers(worker_nodes)
     create_folder_p(destination_folder)
+    #print(destination_folder)
+    #input()
     k8s_destination = os.path.join(destination_folder, "k8s-yaml")
     create_folder_p(k8s_destination)
     place_pods(placement_config, k8s_source, k8s_destination)
@@ -484,7 +493,7 @@ def start_metric_collecter(namespace, experiment_duration, warm_up_duration, exp
     total_duration = warm_up_duration + experiment_duration
     utilization_reporting_interval = 30 # seconds
     subprocess.run(
-            f"python3 /home/ubuntu/firm_compass/bmeg_scripts/kube_utilization.py {namespace} {total_duration} {utilization_reporting_interval} {utilization_folder} &",
+            f"python3 /home/azureuser/firm_compass/bmeg_scripts/kube_utilization.py {namespace} {total_duration} {utilization_reporting_interval} {utilization_folder} &",
                 shell=True,
             )
 
@@ -498,20 +507,20 @@ connections = 32
 threads = 16
 namespace = "social-network"
 request_types = ["compose", "home", "user"]
-wrk2_folder = "/home/ubuntu/firm_compass"
-experiments_root = "/mnt/experiments"
+wrk2_folder = "/home/azureuser/firm_compass"
+experiments_root = "/home/azureuser/experiments"
 rps_list = args.rps
 starting_sequence = args.starting_sequence
 n_sequences = 30
-worker_nodes = [f"userv{i}" for i in range(2,17)] # read from a config file
+worker_nodes = ["gagan-aiopsbench-w1"] # read from a config file
 logging.info(f"Worker nodes {worker_nodes}")
 experiment_duration = args.experiment_duration
 warm_up_duration = args.warm_up_duration
 setup_duration = 600
 seconds_to_microseconds = 1000 * 1000 
-k8s_source = "/home/ubuntu/firm_compass/benchmarks/1-social-network/k8s-yaml-default"
+k8s_source = "/home/azureuser/firm_compass/benchmarks/1-social-network/k8s-yaml-default"
 placement_config_version = 1
-placement_config = f"/home/ubuntu/firm_compass/benchmarks/1-social-network/placement/{placement_config_version}.csv"
+placement_config = f"/home/azureuser/firm_compass/benchmarks/1-social-network/placement/{placement_config_version}.csv"
 
 
 # experiment_folder = "/mnt/experiments/realistic_july29_800_0"
@@ -526,7 +535,9 @@ for rps in rps_list:
         deploy_application(experiment_folder, placement_config, worker_nodes, k8s_source, rps, sequence_number)
 
         frontend_ip = get_service_cluster_ip("nginx-thrift", namespace)
+        frontend_ip = "10.0.0.5"
         jaeger_ip = get_service_cluster_ip("jaeger-out", namespace)
+        jaeger_ip  = "10.0.0.5"
 
         # start_metric_collecter(namespace, experiment_duration, warm_up_duration, experiment_folder)
 
