@@ -1,118 +1,18 @@
-    1  tmux new -s exp
-    2  tmux ls
-    3  tmux new -t install
-    4  ls
-    5  exit
-    6  clear
-    7  tmux at -t install
-    8  tmux a -t exp
-    9  tmux ls
-   10  tmux a -t exp
-   11  tmux ls
-   12  tmux a -t install
-   13  tmux a -t exp
-   14  tmux a -t install
-   15  ls
-   16  ls
-   17  tmux ls
-   18  tmxu a -t exp
-   19  tmux a -t exp
-   20  ssh -i compass.key ubuntu@userv16
-   21  ssh -i compass.key ubuntu@userv16
-   22  tmux ls
-   23  tmxu a -t expt
-   24  ls
-   25  ls
-   26  ls
-   27  tmux ls
-   28  tmux a -t exp
-   29  ssh -i compass.key ubuntu@userv16
-   30  ssh -i compass.key ubuntu@userv16
-   31  ls
-   32  tmux a -t install
-   33  tmux a -t exp
-   34  tmux a -t exp
-   35  tmux ls
-   36  tmux a -t exp
-   37  tmux a -t exp
-   38  tmux ls
-   39  tmux a -t exp
-   40  tmux a -t exp
-   41  tmux a -t exp
-   42  tmux a -t exp
-   43  tmux a -t exp
-   44  tmux a -t exp
-   45  tmux a -t exp
-   46  tmux a -t exp
-   47  d
-   48  exit
-   49  tmux a -t exp
-   50  tmux ls
-   51  tmux a -t install
-   52  tmux a -t exp
-   53  ls
-   54  pwd
-   55  ls
-   56  cd firm_compass/
-   57  ls
-   58  cd experiments/
-   59  cd test_800_0/processed_traces/
-   60  ls
-   61  code .
-   62  pwd
-   63  ls
-   64  cd ../
-   65  cd ..
-   66  ls
-   67  cd test_bottlenecked_800_0/
-   68  ls
-   69  cd processed_traces/
-   70  ls
-   71  tmux ls
-   72  tmux a -t exp
-   73  tmux a -t exp
-   74  tmux ls
-   75  tmux a -t install
-   76  tmux ls
-   77  tmux a -t exp
    78  git clone https://github.com/techiescamp/kubernetes-prometheus
-   79  ls
    80  cd kubernetes-prometheus/
    81  kubectl create namespace monitoring
-   82  ls
-   83  cd ..
-   84  cd firm_compass/
-   85  ls
    86  mkdir prometheus_manifests
    87  cd prometheus_manifests/
-   88  ls
-   89  vim clusterRole.yaml
    90  kubectl create -f clusterRole.yaml
-   91  vim config-map.yaml
    92  kubectl create -f config-map.yaml
-   93  vim prometheus-deployment.yaml
    94  kubectl create  -f prometheus-deployment.yaml 
    95  kubectl get deployments --namespace=monitoring
-   96  kubectl get deployments --namespace=monitoring
-   97  kubectl get deployments --namespace=monitoring
-   98  kubectl describe pod prometheus-deployment -n monitoring
    99  kubectl describe pod prometheus-deployment -n monitoring
-  100  kubectl get deployments --namespace=monitoring
   101  kubectl get pods --namespace=monitoring
-  102  kubectl port-forward prometheus-deployment-96898bbc9-f8lg9 8081:9090 -n monitoring
   103  kubectl port-forward prometheus-deployment-96898bbc9-f8lg9  --address 0.0.0.0 8081:9090 -n monitoring
-  104  vim prometheus-service.yaml
-  105  vim prometheus-service.yaml
   106  kubectl create -f prometheus-service.yaml --namespace=monitoring
   107  kubectl get svc -n monitoring
-  108  kubectl port-forward service/prometheus-service -n monitoring --address 0.0.0.0 8081:8082
   109  kubectl port-forward service/prometheus-service -n monitoring --address 0.0.0.0 8081:8081
-  110  vim prometheus-service.yaml 
-  111  kubeclt delete -f prometheus-service.yaml 
-  112  kubectl delete -f prometheus-service.yaml 
-  113  vim prometheus-service.yaml 
-  114  kubectl create -f prometheus-service.yaml 
-  115  kubectl port-forward service/prometheus-service -n monitoring --address 0.0.0.0 8080:8080
   116  kubectl port-forward service/prometheus-service -n monitoring --address 0.0.0.0 8080:8080
   117  kubectl port-forward service/prometheus-service -n monitoring --address 0.0.0.0 9200:8080
   118  kubectl delete -f prometheus-service.yaml 
@@ -120,11 +20,8 @@
   120  vim prometheus-deployment.yaml 
   121  vim prometheus-service.yaml
   122  kubectl create -f prometheus-service.yaml --namespace=monitoring
-  123  kubectl get pods --namespace=monitoring
-  124  kubectl port-forward prometheus-deployment-96898bbc9-f8lg9 8080:9090 -n monitoring
   125  kubectl port-forward service/prometheus-service -n monitoring --address 0.0.0.0 9200:8080
   126  git clone https://github.com/devopscube/kube-state-metrics-configs.git
-  127  ls
   128  kubectl apply -f kube-state-metrics-configs/
   129  kubectl get deployments kube-state-metrics -n kube-system
   130  kubectl get deployments kube-state-metrics -n kube-system

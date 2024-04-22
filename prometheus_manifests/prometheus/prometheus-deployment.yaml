@@ -16,7 +16,7 @@ spec:
         app: prometheus-server
     spec:
       nodeSelector:
-        kubernetes.io/hostname: userv17-jaeger
+        kubernetes.io/hostname: gagan-aiopsbench-w1
       containers:
         - name: prometheus
           image: prom/prometheus
