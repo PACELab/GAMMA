@@ -1,4 +1,4 @@
-cmd="/home/ubuntu/firm_compass/tools/CPULoadGenerator/requirements.sh"
+cmd="sudo apt update; /home/ubuntu/firm_compass/tools/CPULoadGenerator/requirements.sh"
 for i in {2..16}
 do
 	echo userv$i
