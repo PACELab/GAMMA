@@ -34,6 +34,7 @@ spec:
         death-star-project: social-network
       name: compose-post-service
     spec:
+      nodeName: gagan-aiopsbench-w2
       containers:
       - command:
         - ComposePostService

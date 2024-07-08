@@ -2,12 +2,12 @@ compose-post-redis,gagan-aiopsbench-w1
 compose-post-service,gagan-aiopsbench-w1
 home-timeline-redis,gagan-aiopsbench-w1
 home-timeline-service,gagan-aiopsbench-w1
-jaeger,gagan-aiopsbench-w1
+jaeger,gagan-aiopsbench-monitor
 media-frontend,gagan-aiopsbench-w1
 media-memcached,gagan-aiopsbench-w1
 media-mongodb,gagan-aiopsbench-w1
 media-service,gagan-aiopsbench-w1
-nginx-thrift,gagan-aiopsbench-w1
+nginx-thrift,gagan-aiopsbench-w2
 post-storage-memcached,gagan-aiopsbench-w2
 post-storage-mongodb,gagan-aiopsbench-w2
 post-storage-service,gagan-aiopsbench-w1

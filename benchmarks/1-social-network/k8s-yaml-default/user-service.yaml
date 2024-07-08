@@ -34,6 +34,7 @@ spec:
         death-star-project: social-network
       name: user-service
     spec:
+      nodeName: gagan-aiopsbench-w2
       containers:
       - command:
         - UserService

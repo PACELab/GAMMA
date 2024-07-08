@@ -1,6 +1,5 @@
 import os
 import signal
-import sys
 import subprocess
 import yaml
 import pathlib
@@ -12,14 +11,13 @@ import json
 import threading
 
 
-from kubernetes import client, config, utils
+from kubernetes import client, config
 
 import jaeger_fetch
 import arguments
 import create_dataset
 
 logging.basicConfig(
-    #filename='HISTORYlistener.log',
     level=logging.DEBUG,
     format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S',
@@ -43,6 +41,8 @@ def write_manifest_file(manifest_file, data=""):
     """
     Write a manifest file. If data is not provided, creates an empty file.
     """
+    if not data:
+        logging.warning(f"Creating an empty file: {manifest_file}")
     with open(manifest_file, "w") as f:
         yaml.dump_all(data, f, default_flow_style=False)
 
@@ -50,6 +50,10 @@ def load_multi_doc_yaml(manifest_file):
     """
     Load a manifest file.
     """
+
+    if not os.path.exists(manifest_file):
+        raise FileNotFoundError(f"Manifest file '{manifest_file}' does not exist.")
+    
     with open(manifest_file) as f:
         data = list(yaml.load_all(f, Loader=yaml.FullLoader))
 
@@ -221,7 +225,7 @@ def get_memory_bottleneck_cmd(measure, duration):
     return command
 
 def get_cpu_bottleneck_cmd(measure, duration):
-    command = f"python3 /home/azureuser/firm_compass/tools/CPULoadGenerator/CPULoadGenerator.py -l {measure} -d {duration} -c 0 -c 1 -c 2 -c 3"
+    command = f"python3 /home/azureuser/firm_compass/tools/CPULoadGenerator/CPULoadGenerator.py -l {measure} -d {duration} -c 0 -c 1 -c 2 -c 3 -c 4 -c 5 -c 6 -c 7"
     return command
 
 def create_bottlenecks_remotely(bottleneck, destination, bottleneck_type):
@@ -414,7 +418,7 @@ def get_prometheus_node_metrics(node_list, node_exporter_namespace="monitoring")
             for metric in metrics:
                 pass
 
-def get_prometheus_pod_metrics(pod_list, namespace, experiment_folder, folder =  "prom_metrics", server_url="localhost", port = 9200, duration=1800):
+def get_prometheus_pod_metrics(pod_list, namespace, experiment_folder, folder =  "prom_metrics", server_url="localhost", port = 30000, duration=1200, ):
     metrics = ["container_cpu_usage_seconds_total", 
     "container_memory_usage_bytes", 
     "container_memory_cache"
@@ -436,29 +440,47 @@ def get_prometheus_pod_metrics(pod_list, namespace, experiment_folder, folder = 
     metrics_with_no_container_label = ["container_network_receive_bytes_total", 
     "container_network_transmit_bytes_total",
     ]
+
+
+
     prom_metrics_folder = os.path.join( experiment_folder, folder)
     create_folder_p(prom_metrics_folder)   
     # https://stackoverflow.com/questions/4789837/how-to-terminate-a-python-subprocess-launched-with-shell-true/4791612#4791612
-    prometheus_port_forward = subprocess_bg(f"kubectl port-forward service/prometheus-service -n monitoring --address 0.0.0.0 9200:8080")
+    #prometheus_port_forward = subprocess_bg(f"kubectl port-forward service/prometheus-k8 -n monitoring --address 0.0.0.0 9090:9090")
     os.system("sleep 5")
-    try:
-        for pod in pod_list.items:
-            for metric in metrics:
-                container = pod.spec.containers[0].name
-                pod_name = pod.metadata.name
-                #logging.debug(f"Saving metric {metric} of container: {container}")
-                if metric in metrics_with_no_container_label:
-                    query = f'{metric}{{namespace="{namespace}", pod="{pod_name}"}}[{duration}s]'
-                else:
-                    query = f'{metric}{{namespace="{namespace}", container="{container}", pod="{pod_name}"}}[{duration}s]'                
-                response =requests.get(f"http://{server_url}:{port}" + '/api/v1/query', params={'query': query})
-                try:
-                    with open(os.path.join(prom_metrics_folder, f"{container}_{metric}"), "w") as f:
-                        json.dump(response.json()['data']['result'][0]["values"], f, indent=4)
-                except Exception as e:
-                    logging.error(f"Unable to get {metric} for {container} due to exception: {e}")
-    finally:
-        subprocess_kill_bg(prometheus_port_forward)
+    end_time = datetime.now()
+    start_time = end_time - timedelta(seconds=duration)
+    start_timestamp = int(start_time.timestamp())
+    end_timestamp = int(endtime.timestamp())
+ 
+    for pod in pod_list.items:
+        for metric in metrics:
+            container = pod.spec.containers[0].name
+            pod_name = pod.metadata.name
+            #logging.debug(f"Saving metric {metric} of container: {container}")
+            
+           
+            params = {
+                'query': query,
+                'start': start_timestamp,
+                'end': end_timestamp,
+                'step': step
+            }
+            query = f'{metric}{{namespace="{namespace}", pod="{pod_name}"}} offset {duration}s'
+            # if metric in metrics_with_no_container_label:
+            #     query = f'{metric}{{namespace="{namespace}", pod="{pod_name}"}}[{duration}s]'
+            # else:
+            #     query = f'{metric}{{namespace="{namespace}", container="{container}", pod="{pod_name}"}}[{duration}s]'                
+            response =requests.get(f"http://{server_url}:{port}" + '/api/v1/query', params={'query': query})
+            try:
+                with open(os.path.join(prom_metrics_folder, f"{container}_{metric}"), "w") as f:
+                    json.dump(response.json()['data']['result'][0]["values"], f, indent=4)
+            except Exception as e:
+                logging.error(f"Unable to get {metric} for {container} due to exception: {e}")
+                logging.debug(f"Query: {query}")
+                logging.debug(f"Response: {response.json()}")
+    #finally:
+    #    subprocess_kill_bg(prometheus_port_forward)
 
 def get_pod_logs(namespace, experiment_folder, pod_list, folder):
     pods_logs_destination = os.path.join(experiment_folder, folder)
@@ -497,7 +519,9 @@ def start_metric_collecter(namespace, experiment_duration, warm_up_duration, exp
                 shell=True,
             )
 
-
+# get_logs_and_metrics("social-network", "/home/azureuser/experiments/demo2_800_0")
+# import sys
+# sys.exit()
 #prom_conts
 prom_rate_duration = "3s"
 
@@ -511,8 +535,8 @@ wrk2_folder = "/home/azureuser/firm_compass"
 experiments_root = "/home/azureuser/experiments"
 rps_list = args.rps
 starting_sequence = args.starting_sequence
-n_sequences = 30
-worker_nodes = ["gagan-aiopsbench-w1"] # read from a config file
+n_sequences = 1
+worker_nodes = ["gagan-aiopsbench-w1", "gagan-aiopsbench-w2", "gagan-aiopsbench-monitor"] # read from a config file
 logging.info(f"Worker nodes {worker_nodes}")
 experiment_duration = args.experiment_duration
 warm_up_duration = args.warm_up_duration
@@ -521,7 +545,7 @@ seconds_to_microseconds = 1000 * 1000
 k8s_source = "/home/azureuser/firm_compass/benchmarks/1-social-network/k8s-yaml-default"
 placement_config_version = 1
 placement_config = f"/home/azureuser/firm_compass/benchmarks/1-social-network/placement/{placement_config_version}.csv"
-
+controller_ip = "10.0.0.4"
 
 # experiment_folder = "/mnt/experiments/realistic_july29_800_0"
 # end = 1690665922773286
@@ -535,9 +559,9 @@ for rps in rps_list:
         deploy_application(experiment_folder, placement_config, worker_nodes, k8s_source, rps, sequence_number)
 
         frontend_ip = get_service_cluster_ip("nginx-thrift", namespace)
-        frontend_ip = "10.0.0.5"
+        frontend_ip = controller_ip
         jaeger_ip = get_service_cluster_ip("jaeger-out", namespace)
-        jaeger_ip  = "10.0.0.5"
+        jaeger_ip  = controller_ip
 
         # start_metric_collecter(namespace, experiment_duration, warm_up_duration, experiment_folder)
 
@@ -549,16 +573,16 @@ for rps in rps_list:
 
         threads = []
         if args.cpu_bottlenecked_nodes is not None:
-            logging.info("Creating bottlenecks")
+            logging.info("Creating CPU bottlenecks")
             threads += create_bottlenecks(args.cpu_bottlenecked_nodes, args.cpu_interference_percentage, args.cpu_phases, experiment_folder, "cpu")
         if args.mem_bottlenecked_nodes is not None:
-            logging.info("Creating bottlenecks")
+            logging.info("Creating memory bottlenecks")
             threads += create_bottlenecks(args.mem_bottlenecked_nodes, args.mem_interference_percentage, args.mem_phases, experiment_folder, "memory")
         if args.net_bottlenecked_nodes is not None:
-            logging.info("Creating bottlenecks")
+            logging.info("Creating network bottlenecks")
             threads += create_bottlenecks(args.net_bottlenecked_nodes, args.net_interference_percentage, args.net_phases, experiment_folder, "memory")
         if args.io_bottlenecked_nodes is not None:
-            logging.info("Creating bottlenecks")
+            logging.info("Creating IO bottlenecks")
             threads += create_bottlenecks(args.io_bottlenecked_nodes, args.io_interference_percentage, args.io_phases, experiment_folder, "memory")
 
         start = int(time.time() * seconds_to_microseconds) # epoch time in microseconds
